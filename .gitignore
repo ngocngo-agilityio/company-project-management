@@ -8,3 +8,4 @@ dist
 coverage
 .DS_Store
 apps/backend/src/generated
+.claude/settings.local.json
