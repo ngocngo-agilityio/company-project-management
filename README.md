@@ -1,6 +1,69 @@
 # company-project-management
 
-Monorepo with a backend (Fastify + Prisma) and a web app (React + Vite).
+Company Board is an internal app to manage company projects. It is a pnpm + Turborepo monorepo.
+
+| Path              | What                                       |
+| ----------------- | ------------------------------------------ |
+| `apps/backend`    | Fastify, Prisma 7, zod                     |
+| `apps/web`        | React 19, Vite, Tailwind 4, TanStack Query |
+| `packages/shared` | zod schemas and types shared by both apps  |
+| `packages/ui`     | Shared UI components (empty for now)       |
+
+The target design is in [docs/plan.md](docs/plan.md).
+
+## 📋 Prerequisites
+
+| Tool | Version          | How                                                               |
+| ---- | ---------------- | ----------------------------------------------------------------- |
+| Node | `.nvmrc`         | Install [nvm](https://github.com/nvm-sh/nvm), then run `nvm use`. |
+| pnpm | `packageManager` | Run `corepack enable`. Use pnpm only.                             |
+
+Docker is not needed yet: `pnpm dev` uses the Supabase database from `DATABASE_URL`.
+
+## 🔧 Run locally
+
+```bash
+nvm use
+corepack enable
+pnpm install
+cp .env.example .env   # then fill in real values in .env
+pnpm dev
+```
+
+- The web app runs at `http://localhost:5173`. Requests to `/api` are proxied to the backend.
+- The backend runs at `http://127.0.0.1:3000` by default. Its health check is at `/health`.
+
+Other commands:
+
+```bash
+pnpm lint && pnpm typecheck && pnpm test   # all checks
+pnpm format                                # prettier
+```
+
+## 🔐 Environment variables
+
+Real values live only in the local `.env` file and in Render's Environment settings. Do not commit `.env`, and do not put secrets in this README.
+
+| Variable               | Example                                         | Description                                             | Secret |
+| ---------------------- | ----------------------------------------------- | ------------------------------------------------------- | ------ |
+| `PORT`                 | `3000`                                          | Backend port                                            | No     |
+| `HOST`                 | `127.0.0.1`                                     | Backend bind address                                    | No     |
+| `DATABASE_URL`         | `postgresql://USER:PASSWORD@HOST:5432/postgres` | Supabase connection string (use the Session pooler URL) | Yes    |
+| `GOOGLE_CLIENT_ID`     | `xxxx.apps.googleusercontent.com`               | OAuth client ID from Google Cloud                       | No     |
+| `GOOGLE_CLIENT_SECRET` | `your-client-secret`                            | OAuth client secret from Google Cloud                   | Yes    |
+| `GOOGLE_REDIRECT_URI`  | `http://localhost:3000/auth/google/callback`    | Differs between local and Render                        | No     |
+
+## 🎨 Design
+
+Screens follow the Design canvas: https://claude.ai/artifact/4RdpWWAP1kveEi7S5zBYHG
+
+If the link does not open, ask the project owner for view access. Name the frame you built from in the pull request.
+
+## ✅ Pull requests
+
+- Branch from `dev` and open the pull request against `dev`.
+- Use conventional commits with a scope, for example `feat(api): add project list`.
+- The template in [.github/pull_request_template.md](.github/pull_request_template.md) is filled in for every pull request. Its definition-of-done checklist must be complete before review: tests pass, no secret, screen matches the Design canvas, README updated.
 
 ## 🏗️ Infrastructure
 
@@ -16,27 +79,3 @@ Monorepo with a backend (Fastify + Prisma) and a web app (React + Vite).
 | --------- | ---------------------------------------------------- |
 | Backend   | https://company-project-management-mmqg.onrender.com |
 | Web       | https://company-project-management-web.onrender.com  |
-
-The backend health check is at `/health`.
-
-## 🔧 Run locally
-
-```bash
-pnpm install
-cp .env.example .env   # then fill in real values in .env
-pnpm run dev
-```
-
-- The web app runs at `http://localhost:5173`. Requests to `/api` are proxied to the backend.
-- The backend runs at `http://127.0.0.1:3000` by default.
-
-## 🔐 Environment variables
-
-Real values live only in the local `.env` file and in Render's Environment settings. Do not commit `.env`, and do not put secrets in this README.
-
-| Variable                                   | Description                                                        |
-| ------------------------------------------ | ------------------------------------------------------------------ |
-| `PORT`, `HOST`                             | Port and bind address for the backend                              |
-| `DATABASE_URL`                             | Supabase connection string (Session pooler)                        |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | OAuth client from Google Cloud                                     |
-| `GOOGLE_REDIRECT_URI`                      | `http://localhost:3000/auth/google/callback` for local development |
