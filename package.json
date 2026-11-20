@@ -10,9 +10,11 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint && eslint \"*.js\"",
+    "lint": "turbo run lint && eslint \"*.js\" && prettier --check .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -20,15 +22,21 @@
     "@commitlint/config-conventional": "catalog:",
     "@eslint/js": "catalog:",
     "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "globals": "catalog:",
     "husky": "catalog:",
     "lint-staged": "catalog:",
+    "prettier": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },
   "lint-staged": {
-    "*.{ts,tsx,js}": "eslint --fix"
+    "*.{ts,tsx,js}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,css,yaml,yml}": "prettier --write"
   }
 }

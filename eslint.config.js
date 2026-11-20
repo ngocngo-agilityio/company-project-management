@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
+import prettier from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -21,13 +22,25 @@ export default tseslint.config(
   {
     files: ["apps/web/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: ["@board/backend", "@board/backend/*", "**/apps/backend/**", "../**/backend/**"] }],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@board/backend", "@board/backend/*", "**/apps/backend/**", "../**/backend/**"],
+        },
+      ],
     },
   },
   {
     files: ["apps/backend/**/*.ts"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: ["@board/web", "@board/web/*", "**/apps/web/**", "../**/web/**"] }],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@board/web", "@board/web/*", "**/apps/web/**", "../**/web/**"],
+        },
+      ],
     },
   },
+  // must stay last: turns off ESLint rules that conflict with Prettier
+  prettier,
 );

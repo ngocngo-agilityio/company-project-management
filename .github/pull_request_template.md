@@ -1,0 +1,20 @@
+## What and why
+
+<!-- One or two sentences. Link the story, e.g. S1-SKILL-01. -->
+
+Story:
+
+## How it was verified
+
+<!-- Commands run, screens opened, tests added. -->
+
+## Definition of done
+
+- [ ] `pnpm lint`, `pnpm typecheck` and `pnpm test` pass
+- [ ] Tests cover the change, including each role in `docs/permissions.md` for routes
+- [ ] Routes and permissions match `docs/api.md` and `docs/permissions.md` (updated if changed)
+- [ ] Migrations only add (no drop, rename or type change)
+- [ ] Screens have loading, empty, error and read-only states, and work from 375px
+- [ ] Env var changes are in `.env.example` and the README table
+- [ ] No secrets, no `.env` content
+- [ ] Commit messages are conventional with a scope; PR targets `dev`
