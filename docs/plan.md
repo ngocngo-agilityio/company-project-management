@@ -18,7 +18,7 @@ Condensed from the Company Board Spec. When this file and the sources disagree, 
 ## Problem and goal
 
 - Work for a project is spread over chats and files; nobody sees who does what, by when, how far.
-- Each project gets one board; every piece of work is a card grouped by stage (list).
+- Each project starts with one board and can have several; every piece of work is a card grouped by stage (list).
 - Teams use it for real work after M4 (about 4 weeks). One developer working with Claude Code, free plans (USD 0).
 - Web app for phone, tablet and computer. Sign in with Google; no invitation, no entry. English only.
 - No email service: invitations are copied links, notifications live inside the app.
