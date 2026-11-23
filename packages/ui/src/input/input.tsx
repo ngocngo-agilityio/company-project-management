@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { cn } from "./cn";
+import { cn } from "../lib/cn";
 
 export type InputProps = ComponentProps<"input"> & {
   /** Marks the field as having an error (border and aria-invalid). Show the message as text next to it. */

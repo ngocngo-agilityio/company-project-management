@@ -1,5 +1,5 @@
 import * as RadixAvatar from "@radix-ui/react-avatar";
-import { cn } from "./cn";
+import { cn } from "../lib/cn";
 
 const COLORS = ["bg-avatar-1", "bg-avatar-2", "bg-avatar-3", "bg-avatar-4", "bg-avatar-5", "bg-avatar-6"] as const;
 
