@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
-import type { ComponentProps } from "react";
 import type { VariantProps } from "class-variance-authority";
+import type { ComponentProps } from "react";
 import { cn } from "./cn";
 import { toneStyles } from "./tone";
 

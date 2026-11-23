@@ -7,8 +7,9 @@ export const Dialog = RadixDialog.Root;
 export const DialogTrigger = RadixDialog.Trigger;
 export const DialogClose = RadixDialog.Close;
 
-function Overlay() {
-  return <RadixDialog.Overlay className="fixed inset-0 z-(--z-scrim) bg-scrim" />;
+/** The scrim must sit under its own panel: modal-scrim (55) < modal (60), scrim (65) < drawer (70). */
+function Overlay({ className }: { className: string }) {
+  return <RadixDialog.Overlay className={cn("fixed inset-0 bg-scrim", className)} />;
 }
 
 const closeButtonStyles =
@@ -27,7 +28,7 @@ export type DialogContentProps = {
 export function DialogContent({ title, description, size = "sm", children, className }: DialogContentProps) {
   return (
     <RadixDialog.Portal>
-      <Overlay />
+      <Overlay className="z-(--z-modal-scrim)" />
       <RadixDialog.Content
         {...(description ? {} : { "aria-describedby": undefined })}
         className={cn(
@@ -36,7 +37,7 @@ export function DialogContent({ title, description, size = "sm", children, class
           className,
         )}
       >
-        <RadixDialog.Title className="pr-10 font-display text-heading-2">{title}</RadixDialog.Title>
+        <RadixDialog.Title className="pr-13 font-display min-[900px]:pr-10 text-heading-2">{title}</RadixDialog.Title>
         {description ? (
           <RadixDialog.Description className="mt-1 text-body-small text-ink-muted">
             {description}
@@ -62,7 +63,7 @@ export type DrawerContentProps = {
 export function DrawerContent({ title, children, className }: DrawerContentProps) {
   return (
     <RadixDialog.Portal>
-      <Overlay />
+      <Overlay className="z-(--z-scrim)" />
       <RadixDialog.Content
         aria-describedby={undefined}
         className={cn(

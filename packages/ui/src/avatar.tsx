@@ -28,7 +28,10 @@ export type AvatarProps = {
 };
 
 export function Avatar({ name, src, colorIndex, size = 26, className }: AvatarProps) {
-  const index = colorIndex && colorIndex >= 1 && colorIndex <= COLORS.length ? colorIndex : colorIndexOf(name);
+  const index =
+    colorIndex !== undefined && Number.isInteger(colorIndex) && colorIndex >= 1 && colorIndex <= COLORS.length
+      ? colorIndex
+      : colorIndexOf(name);
   return (
     <RadixAvatar.Root
       role="img"
