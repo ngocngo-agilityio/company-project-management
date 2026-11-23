@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV", "PORT", "HOST", "DATABASE_URL"],
+  "globalEnv": ["NODE_ENV", "PORT", "HOST", "DATABASE_URL", "WEB_ORIGIN", "VITE_API_URL"],
   "globalDependencies": [".env"],
   "tasks": {
     "generate": { "outputs": ["src/generated/**"] },

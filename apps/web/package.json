@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@board/shared": "workspace:*",
     "@radix-ui/react-dialog": "catalog:",
     "@tanstack/react-query": "catalog:",
     "react": "catalog:",

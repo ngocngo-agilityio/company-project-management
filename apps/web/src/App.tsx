@@ -1,9 +1,18 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import { useQuery } from "@tanstack/react-query";
+import { fetchHealth } from "./lib/api";
+
+function ApiStatus() {
+  const { status } = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const text = { pending: "waking up…", success: "ok", error: "unreachable" }[status];
+  return <p role="status">API: {text}</p>;
+}
 
 export function App() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4">
       <h1 className="text-3xl font-bold">Hello Company Board</h1>
+      <ApiStatus />
       <Dialog.Root>
         <Dialog.Trigger className="rounded bg-slate-900 px-3 py-1 text-white">About</Dialog.Trigger>
         <Dialog.Portal>

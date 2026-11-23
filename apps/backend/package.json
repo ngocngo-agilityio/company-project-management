@@ -15,6 +15,7 @@
   "dependencies": {
     "@board/shared": "workspace:*",
     "@prisma/client": "catalog:",
+    "@fastify/cors": "catalog:",
     "fastify": "catalog:",
     "zod": "catalog:"
   },
