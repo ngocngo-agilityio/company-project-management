@@ -20,8 +20,8 @@ Target architecture from the [Technical Stack](https://claude.ai/artifact/HxR9o2
 | Browser tests   | Playwright at phone, tablet, computer sizes; `E2E=1` test login                   | Planned                                         |
 | Components      | Storybook with the accessibility add-on                                           | Planned (S1-STORY-01)                           |
 | Lint and format | ESLint 10, Prettier, husky, lint-staged, commitlint                               | Done                                            |
-| CI/CD           | GitHub Actions (lint, typecheck, unit, Playwright), Render auto-deploy            | Planned CI (S1-CICD-01); Render Done            |
-| Dependencies    | Dependabot, weekly                                                                | Planned (S1-CICD-01)                            |
+| CI/CD           | GitHub Actions (lint, typecheck, unit, Playwright), Render auto-deploy            | CI Done (no Playwright yet); Render Done        |
+| Dependencies    | Dependabot, weekly                                                                | Done                                            |
 | Hosting         | Render free web service (Singapore), Supabase free (Mumbai)                       | Done                                            |
 | Background jobs | `apps/worker` with pg-boss                                                        | Later (not in M1-M4)                            |
 
@@ -47,7 +47,7 @@ Source: the design canvas (`project/ds/company-board/tokens.json`). Not in the r
 
 ## Security and operations
 
-- HTTPS; same-origin HttpOnly, Secure, SameSite cookie; no CORS.
+- HTTPS; same-origin HttpOnly, Secure, SameSite cookie; no CORS. Today web and API run as two Render services, so the API allows exactly one web origin through CORS (`WEB_ORIGIN`, `credentials: true`) until they share one address.
 - Every route checks the role on the server. Observer writes are refused.
 - Rate limit on sign-in and invitation routes; `Origin` checked on POST, PATCH, DELETE.
 - Secrets only in Render and GitHub settings, never in the repository. See `.env.example` for names.
