@@ -9,7 +9,12 @@ Company Board is an internal app to manage company projects. It is a pnpm + Turb
 | `packages/shared` | zod schemas and types shared by both apps  |
 | `packages/ui`     | Shared UI components (empty for now)       |
 
-The target design is in [docs/plan.md](docs/plan.md).
+The target design is in [docs/plan.md](docs/plan.md). More docs:
+
+- [docs/technical-stack.md](docs/technical-stack.md): stack and what exists today (Status column)
+- [docs/permissions.md](docs/permissions.md): roles and permissions
+- [docs/api.md](docs/api.md): API conventions and proposed endpoints
+- [CLAUDE.md](CLAUDE.md): rules for working with Claude Code in this repo
 
 ## 📋 Prerequisites
 
@@ -19,6 +24,8 @@ The target design is in [docs/plan.md](docs/plan.md).
 | pnpm | `packageManager` | Run `corepack enable`. Use pnpm only.                             |
 
 Docker is not needed yet: `pnpm dev` uses the Supabase database from `DATABASE_URL`.
+
+Git hooks (husky) are installed automatically by `pnpm install`. On commit, `lint-staged` formats and lints staged files, and `commitlint` rejects messages that are not conventional commits. Do not bypass them with `--no-verify`.
 
 ## 🔧 Run locally
 
@@ -38,22 +45,30 @@ Other commands:
 ```bash
 pnpm lint && pnpm typecheck && pnpm test   # all checks
 pnpm format                                # prettier
+pnpm build                                 # build all packages
+pnpm preview                               # build, then serve production output
 ```
+
+`pnpm preview` serves the web build at `http://localhost:4173` and the backend at `http://127.0.0.1:3000`. The preview server has no `/api` proxy, so for the web app to reach the backend set `VITE_API_URL=http://127.0.0.1:3000` (before the build) and `WEB_ORIGIN=http://localhost:4173` in `.env`.
+
+Database: migrations are additive only. Never run `prisma migrate reset` or `db push`; `DATABASE_URL` points at the real Supabase database.
 
 ## 🔐 Environment variables
 
 Real values live only in the local `.env` file and in Render's Environment settings. Do not commit `.env`, and do not put secrets in this README.
 
-| Variable               | Example                                         | Description                                             | Secret |
-| ---------------------- | ----------------------------------------------- | ------------------------------------------------------- | ------ |
-| `PORT`                 | `3000`                                          | Backend port                                            | No     |
-| `HOST`                 | `127.0.0.1`                                     | Backend bind address                                    | No     |
-| `DATABASE_URL`         | `postgresql://USER:PASSWORD@HOST:5432/postgres` | Supabase connection string (use the Session pooler URL) | Yes    |
-| `GOOGLE_CLIENT_ID`     | `xxxx.apps.googleusercontent.com`               | OAuth client ID from Google Cloud                       | No     |
-| `GOOGLE_CLIENT_SECRET` | `your-client-secret`                            | OAuth client secret from Google Cloud                   | Yes    |
-| `GOOGLE_REDIRECT_URI`  | `http://localhost:3000/auth/google/callback`    | Differs between local and Render                        | No     |
-| `WEB_ORIGIN`           | `https://web-name.onrender.com`                 | Web app address the API allows through CORS (backend)   | No     |
-| `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = `/api` proxy)  | No     |
+| Variable               | Example                                         | Description                                                            | Secret |
+| ---------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- | ------ |
+| `PORT`                 | `3000`                                          | Backend port                                                           | No     |
+| `HOST`                 | `127.0.0.1`                                     | Backend bind address                                                   | No     |
+| `DATABASE_URL`         | `postgresql://USER:PASSWORD@HOST:5432/postgres` | Supabase connection string (use the Session pooler URL)                | Yes    |
+| `GOOGLE_CLIENT_ID`     | `xxxx.apps.googleusercontent.com`               | OAuth client ID from Google Cloud                                      | No     |
+| `GOOGLE_CLIENT_SECRET` | `your-client-secret`                            | OAuth client secret from Google Cloud                                  | Yes    |
+| `GOOGLE_REDIRECT_URI`  | `http://localhost:3000/auth/google/callback`    | Differs between local and Render                                       | No     |
+| `WEB_ORIGIN`           | `https://web-name.onrender.com`                 | Web app address the API allows through CORS (backend). Empty = no CORS | No     |
+| `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = `/api` proxy)                 | No     |
+
+`DATABASE_URL` is optional for now (validated only when set). The backend does not read the `GOOGLE_*` variables yet; sign-in arrives in S1-AUTH-01.
 
 ## 🎨 Design
 
@@ -69,7 +84,7 @@ If the link does not open, ask the project owner for view access. Name the frame
 
 ## 🤖 CI
 
-- [.github/workflows/ci.yml](.github/workflows/ci.yml) runs job `ci` on every pull request to `dev` and `main`: `pnpm lint`, `pnpm typecheck`, `pnpm test`.
+- [.github/workflows/ci.yml](.github/workflows/ci.yml) runs job `ci` on every pull request to `dev` and `main`: `pnpm lint`, `pnpm typecheck`, `pnpm test`. Browser (Playwright) tests are not part of CI yet.
 - `ci` is a required check on `dev` and `main` (repository ruleset). A failing check blocks the merge. Keep the job name `ci`, or update the ruleset when renaming it.
 - [.github/dependabot.yml](.github/dependabot.yml) opens weekly pull requests for npm and GitHub Actions updates.
 
@@ -87,3 +102,5 @@ If the link does not open, ask the project owner for view access. Name the frame
 | --------- | ---------------------------------------------------- |
 | Backend   | https://company-project-management-mmqg.onrender.com |
 | Web       | https://company-project-management-web.onrender.com  |
+
+Quick check after a deploy: open `<backend URL>/health`; it should return `{"ok":true}`. Render's free plan sleeps after 15 minutes idle, so the first request can take a while.
