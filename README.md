@@ -67,6 +67,12 @@ If the link does not open, ask the project owner for view access. Name the frame
 - Use conventional commits with a scope, for example `feat(api): add project list`.
 - The template in [.github/pull_request_template.md](.github/pull_request_template.md) is filled in for every pull request. Its definition-of-done checklist must be complete before review: tests pass, no secret, screen matches the Design canvas, README updated.
 
+## 🤖 CI
+
+- [.github/workflows/ci.yml](.github/workflows/ci.yml) runs job `ci` on every pull request to `dev` and `main`: `pnpm lint`, `pnpm typecheck`, `pnpm test`.
+- `ci` is a required check on `dev` and `main` (repository ruleset). A failing check blocks the merge. Keep the job name `ci`, or update the ruleset when renaming it.
+- [.github/dependabot.yml](.github/dependabot.yml) opens weekly pull requests for npm and GitHub Actions updates.
+
 ## 🏗️ Infrastructure
 
 | Service               | Region              | Project name                 | Owner    |
