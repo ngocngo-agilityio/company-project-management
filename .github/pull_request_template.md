@@ -1,8 +1,10 @@
 ## What and why
 
-<!-- One or two sentences. Link the story, e.g. S1-SKILL-01. -->
+<!-- One or two sentences. Name the one Delivery Plan task, e.g. S1-DEPLOY-01. -->
 
-Story:
+Task:
+
+Done when (copy it from the task in the Delivery Plan):
 
 Design frame (see the Design section in the README; skip if no screen changed):
 
