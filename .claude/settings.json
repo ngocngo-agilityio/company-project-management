@@ -18,7 +18,13 @@
       "Bash(gh pr view *)",
       "Bash(gh pr diff *)",
       "Bash(gh pr checks *)",
-      "Bash(gh pr list *)"
+      "Bash(gh pr list *)",
+      "Bash(git fetch origin pull/*)",
+      "Bash(git show *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git status)"
     ],
     "deny": [
       "Read(**/.env)",
