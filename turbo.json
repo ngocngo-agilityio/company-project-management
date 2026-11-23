@@ -6,6 +6,7 @@
     "generate": { "outputs": ["src/generated/**"] },
     "build": { "dependsOn": ["^build", "generate"], "outputs": ["dist/**"] },
     "dev": { "dependsOn": ["^build", "generate"], "cache": false, "persistent": true },
+    "preview": { "dependsOn": ["build"], "cache": false, "persistent": true },
     "lint": { "dependsOn": ["^build"] },
     "typecheck": { "dependsOn": ["^build", "generate"] },
     "test": { "dependsOn": ["^build", "generate"] }
