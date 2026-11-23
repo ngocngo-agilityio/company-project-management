@@ -6,6 +6,8 @@ const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
 const envSchema = z.object({
   PORT: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(65535).default(3000)),
   HOST: z.preprocess(emptyToUndefined, z.string().default("127.0.0.1")),
+  // Origin of the web app allowed to call the API (CORS), e.g. https://web.example.com. Unset = no CORS.
+  WEB_ORIGIN: z.preprocess(emptyToUndefined, z.url().optional()),
   // Optional until something actually needs the DB; still validated when set.
   DATABASE_URL: z.preprocess(
     emptyToUndefined,

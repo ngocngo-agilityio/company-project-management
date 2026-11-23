@@ -6,7 +6,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   // Same repo-root .env the backend reads, so the proxy follows its PORT/HOST.
-  const env = loadEnv(mode, fileURLToPath(new URL("../..", import.meta.url)), "");
+  const rootDir = fileURLToPath(new URL("../..", import.meta.url));
+  const env = loadEnv(mode, rootDir, "");
   const bindHost = env.HOST || "127.0.0.1";
   // Wildcard bind addresses are not connectable; target loopback instead. Bracket IPv6 literals.
   const connectHost = bindHost === "0.0.0.0" ? "127.0.0.1" : bindHost === "::" ? "::1" : bindHost;
@@ -14,6 +15,8 @@ export default defineConfig(({ mode }) => {
   const port = env.PORT || "3000";
 
   return {
+    // VITE_* variables (e.g. VITE_API_URL) come from the repo-root .env too.
+    envDir: rootDir,
     plugins: [react(), tailwindcss()],
     server: {
       port: 5173,

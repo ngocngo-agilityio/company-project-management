@@ -8,7 +8,7 @@ try {
   console.error((err as Error).message);
   process.exit(1);
 }
-const app = buildApp({ logger: true });
+const app = buildApp({ logger: true, webOrigin: env.WEB_ORIGIN });
 
 let shuttingDown = false;
 

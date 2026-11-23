@@ -37,6 +37,13 @@ describe("parseEnv", () => {
     expect(parseEnv({ DATABASE_URL: DB })).toEqual({ PORT: 3000, HOST: "127.0.0.1", DATABASE_URL: DB });
   });
 
+  it("allows WEB_ORIGIN to be unset or empty and rejects a non-URL", () => {
+    expect(parseEnv({}).WEB_ORIGIN).toBeUndefined();
+    expect(parseEnv({ WEB_ORIGIN: "" }).WEB_ORIGIN).toBeUndefined();
+    expect(parseEnv({ WEB_ORIGIN: "https://web.example.com" }).WEB_ORIGIN).toBe("https://web.example.com");
+    expect(() => parseEnv({ WEB_ORIGIN: "not a url" })).toThrow(/WEB_ORIGIN/);
+  });
+
   it("treats empty PORT as unset", () => {
     expect(parseEnv({ PORT: "", DATABASE_URL: DB }).PORT).toBe(3000);
   });
