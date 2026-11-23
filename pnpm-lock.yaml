@@ -237,6 +237,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.108.1(@types/react@19.3.0)(react@19.3.1)
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.74.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
         version: 19.3.1
