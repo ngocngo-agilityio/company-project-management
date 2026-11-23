@@ -24,6 +24,7 @@ Internal app to manage company projects. pnpm + Turborepo monorepo.
 pnpm install              # install (Node from .nvmrc, pnpm only)
 cp .env.example .env      # then fill real values locally
 pnpm dev                  # web http://localhost:5173, backend http://127.0.0.1:3000
+pnpm preview              # build, then serve production output (web :4173, backend :3000)
 pnpm lint && pnpm typecheck && pnpm test
 pnpm format               # prettier
 ```
