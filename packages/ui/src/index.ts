@@ -13,3 +13,4 @@ export {
   type DrawerContentProps,
 } from "./components/dialog/dialog";
 export { Input, type InputProps } from "./components/input/input";
+export { Logo, type LogoProps } from "./components/logo/logo";

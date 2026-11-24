@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogContent, DialogTrigger } from "@board/ui";
+import { Avatar, Button, Dialog, DialogContent, DialogTrigger, Logo } from "@board/ui";
 import { FolderKanban, SquareCheckBig, Users, type LucideIcon } from "lucide-react";
 import { NavLink } from "react-router";
 import { ApiStatus } from "./ApiStatus";
@@ -16,14 +16,9 @@ const navLinkStyles =
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col gap-4 p-4">
-      <div className="flex items-center gap-2.5">
-        <span
-          aria-hidden
-          className="inline-flex size-(--logo) items-center justify-center rounded-7 bg-accent font-display text-caption text-on-accent"
-        >
-          CB
-        </span>
-        <span className="font-display text-heading-3">Company Board</span>
+      <div className="flex items-center gap-2 px-2 font-display text-[17px]/6 font-bold">
+        <Logo />
+        Company Board
       </div>
       <nav aria-label="Main" className="flex flex-col gap-1">
         <p className="px-3 pb-1 text-overline text-ink-muted uppercase">Workspace</p>
@@ -44,6 +39,14 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </DialogTrigger>
           <DialogContent title="Company Board" description="Internal app to manage company projects." />
         </Dialog>
+        {/* Placeholder until sign-in exists: the design shows the signed-in person here. */}
+        <div className="flex w-full items-center gap-2.5 rounded-12 border border-line bg-surface-2 p-2.5">
+          <Avatar name="Guest" size={34} />
+          <div className="min-w-0">
+            <strong className="block truncate text-button">Guest</strong>
+            <p className="truncate text-body-small text-ink-muted">Not signed in</p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -91,3 +91,17 @@ describe("About dialog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
+
+describe("sidebar user card", () => {
+  beforeEach(() => mockFetch(() => Promise.resolve(Response.json({ ok: true }))));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows the guest avatar and status in the sidebar only", async () => {
+    renderAt("/projects");
+    const [sidebar] = await screen.findAllByRole("navigation", { name: "Main" });
+    const card = sidebar!.parentElement!;
+    expect(within(card).getByRole("img", { name: "Guest" })).toBeInTheDocument();
+    expect(within(card).getByText("Not signed in")).toBeInTheDocument();
+    expect(within(screen.getByRole("banner")).queryByRole("img")).not.toBeInTheDocument();
+  });
+});

@@ -1,4 +1,4 @@
-import { Avatar, Button, Dialog, DialogTrigger, DrawerContent } from "@board/ui";
+import { Button, Dialog, DialogTrigger, DrawerContent } from "@board/ui";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Outlet, useMatches } from "react-router";
@@ -37,7 +37,6 @@ export function AppLayout() {
             </DrawerContent>
           </Dialog>
           <h1 className="min-w-0 flex-1 truncate font-display text-heading-1">{title}</h1>
-          <Avatar name="Guest" size={34} />
         </header>
         <main className="mx-auto w-full max-w-page flex-1 px-4 pt-5.5 pb-8">
           <Outlet />
