@@ -61,7 +61,7 @@ pnpm db:deploy                # prisma migrate deploy (apply existing migrations
 pnpm db:seed                  # create the first Super Admin (safe to repeat)
 ```
 
-`db:*` scripts refuse a non-local `DATABASE_URL` unless `ALLOW_REMOTE_DB=1`. Migrations are additive only. Never run `prisma migrate reset` or `db push`; a hook blocks them, and Supabase is the real database.
+`db:*` scripts refuse a non-local `DATABASE_URL`; `ALLOW_REMOTE_DB=1` lifts this for `db:deploy` and `db:seed` only, never `db:migrate`. Migrations are additive only. Never run `prisma migrate reset` or `db push`; a hook blocks them, and Supabase is the real database.
 
 ## 🔐 Environment variables
 
@@ -78,7 +78,7 @@ Real values live only in the local `.env` file and in Render's Environment setti
 | `WEB_ORIGIN`           | `https://web-name.onrender.com`                 | Web app address the API allows through CORS (backend). Empty = no CORS | No     |
 | `SUPER_ADMIN_EMAIL`    | `you@example.com`                               | Email of the first Super Admin created by `pnpm db:seed` (lowercased)  | No     |
 | `SUPER_ADMIN_NAME`     | `Ada Admin`                                     | Optional display name for that user (default: part before `@`)         | No     |
-| `ALLOW_REMOTE_DB`      | `1`                                             | Lets `db:migrate`/`db:deploy` run on a non-local database. Leave empty | No     |
+| `ALLOW_REMOTE_DB`      | `1`                                             | Lets `db:deploy`/`db:seed` run on a non-local database. Leave empty    | No     |
 | `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = `/api` proxy)                 | No     |
 
 `DATABASE_URL` is optional for now (validated only when set). The backend does not read the `GOOGLE_*` variables yet; sign-in arrives in S1-AUTH-01.
