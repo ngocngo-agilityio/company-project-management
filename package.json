@@ -14,6 +14,9 @@
     "lint": "turbo run lint && eslint \"*.js\" && prettier --check .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "storybook": "pnpm --filter @board/ui storybook",
+    "build-storybook": "pnpm --filter @board/ui build-storybook",
+    "test:a11y": "pnpm --filter @board/ui test:a11y",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"

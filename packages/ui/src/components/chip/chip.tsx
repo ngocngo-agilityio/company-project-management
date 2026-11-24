@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
-import { cn } from "../lib/cn";
-import { toneStyles } from "../lib/tone";
+import { cn } from "../../lib/cn";
+import { toneStyles } from "../../lib/tone";
 
 const chipStyles = "inline-flex items-center gap-1.5 rounded-6 px-2 py-0.5 text-caption font-semibold";
 
