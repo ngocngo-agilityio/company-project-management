@@ -1,7 +1,7 @@
 import type { VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
-import { cn } from "./cn";
-import { toneStyles } from "./tone";
+import { cn } from "../../lib/cn";
+import { toneStyles } from "../../lib/tone";
 
 const badgeStyles = "inline-flex items-center rounded-pill px-2.5 py-0.5 text-caption font-semibold";
 

@@ -32,4 +32,14 @@ describe("Avatar", () => {
     render(<Avatar name="Linh Tran" colorIndex={9} />);
     expect(screen.getByText("LT").className).toMatch(/bg-avatar-[1-6]/);
   });
+
+  it("shows initials when the image has not loaded", async () => {
+    render(<Avatar name="Linh Tran" src="/linh.png" colorIndex={3} />);
+    expect(await screen.findByText("LT")).toHaveClass("bg-avatar-3");
+  });
+
+  it("falls back to a hashed colour for a non-integer colorIndex", () => {
+    render(<Avatar name="Linh Tran" colorIndex={2.5} />);
+    expect(screen.getByText("LT").className).toMatch(/bg-avatar-[1-6]/);
+  });
 });

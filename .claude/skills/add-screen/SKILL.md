@@ -27,4 +27,4 @@ Follow `.claude/rules/web.md`.
 8. Write tests (see `write-tests`): loading, empty, error and success.
 9. Run `pnpm lint && pnpm typecheck && pnpm test`. Open the screen in the browser.
 
-Storybook is not used yet. Add a story only after it is set up for `@board/ui`.
+Storybook is set up in `@board/ui`. A new shared component also gets a `<name>.stories.tsx` that passes `pnpm --filter @board/ui test:a11y`.

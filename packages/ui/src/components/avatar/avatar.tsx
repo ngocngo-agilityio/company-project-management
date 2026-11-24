@@ -1,5 +1,5 @@
 import * as RadixAvatar from "@radix-ui/react-avatar";
-import { cn } from "./cn";
+import { cn } from "../../lib/cn";
 
 const COLORS = ["bg-avatar-1", "bg-avatar-2", "bg-avatar-3", "bg-avatar-4", "bg-avatar-5", "bg-avatar-6"] as const;
 
@@ -28,7 +28,10 @@ export type AvatarProps = {
 };
 
 export function Avatar({ name, src, colorIndex, size = 26, className }: AvatarProps) {
-  const index = colorIndex && colorIndex >= 1 && colorIndex <= COLORS.length ? colorIndex : colorIndexOf(name);
+  const index =
+    colorIndex !== undefined && Number.isInteger(colorIndex) && colorIndex >= 1 && colorIndex <= COLORS.length
+      ? colorIndex
+      : colorIndexOf(name);
   return (
     <RadixAvatar.Root
       role="img"
