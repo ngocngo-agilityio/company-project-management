@@ -1,0 +1,23 @@
+# Local development database only. Never point this at, or copy data from, Supabase.
+# Start: docker compose up -d --wait   Stop: docker compose down (data stays in the volume)
+services:
+  db:
+    image: postgres:17
+    container_name: board-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: board
+      POSTGRES_PASSWORD: board_local_dev
+      POSTGRES_DB: board
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - board-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U board -d board"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  board-db-data:

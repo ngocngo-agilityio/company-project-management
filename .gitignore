@@ -10,3 +10,9 @@ coverage
 apps/backend/src/generated
 .claude/settings.local.json
 storybook-static
+
+# Prisma agent skills installed locally by tooling (not part of the project)
+/apps/backend/.agents/
+/apps/backend/.windsurf/
+/apps/backend/.claude/skills/
+/apps/backend/skills-lock.json

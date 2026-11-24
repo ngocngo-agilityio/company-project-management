@@ -9,6 +9,7 @@ try {
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
+  migrations: { seed: "tsx scripts/seed.ts" },
   datasource: {
     // `prisma generate` does not connect, so a missing URL must not break it.
     // The placeholder points nowhere real: migrate/studio fail instead of hitting a wrong DB.
