@@ -11,7 +11,10 @@ paths:
 - Never DROP, RENAME or change a column type in one step. Use expand, then contract, in
   separate migrations after the code stops using the old column.
 - Never run `prisma migrate reset` or `prisma db push`.
-- Local: `prisma migrate dev --name <short_snake_name>`. Render: `prisma migrate deploy`.
+- Local: Docker Postgres (`docker compose up -d --wait`), then `pnpm db:migrate`, `pnpm db:seed`.
+  Render: `prisma migrate deploy`. `db:*` scripts refuse a non-local `DATABASE_URL` unless `ALLOW_REMOTE_DB=1`.
+- A partial unique index (e.g. one Pending invitation per project and email) is written by hand
+  in the migration SQL before it is applied.
 - Models are PascalCase in Prisma, mapped to singular snake_case tables and columns
   (`@@map`, `@map`). Ids are uuid. Timestamps: `created_at`, `archived_at`, `expires_at`.
 - Order with a decimal `position` (a card between 1 and 2 gets 1.5; a move updates one row).

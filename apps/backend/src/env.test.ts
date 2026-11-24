@@ -34,7 +34,12 @@ const DB = "postgresql://u:p@localhost:5432/db";
 
 describe("parseEnv", () => {
   it("applies defaults", () => {
-    expect(parseEnv({ DATABASE_URL: DB })).toEqual({ PORT: 3000, HOST: "127.0.0.1", DATABASE_URL: DB });
+    expect(parseEnv({ DATABASE_URL: DB })).toEqual({
+      PORT: 3000,
+      HOST: "127.0.0.1",
+      DATABASE_URL: DB,
+      ALLOW_REMOTE_DB: "0",
+    });
   });
 
   it("allows WEB_ORIGIN to be unset or empty and rejects a non-URL", () => {
@@ -59,5 +64,18 @@ describe("parseEnv", () => {
 
   it("rejects a non-postgres DATABASE_URL", () => {
     expect(() => parseEnv({ DATABASE_URL: "mysql://x" })).toThrow(/DATABASE_URL/);
+  });
+});
+
+describe("seed and db guard variables", () => {
+  it("lowercases SUPER_ADMIN_EMAIL and treats empty values as unset", () => {
+    const env = parseEnv({ SUPER_ADMIN_EMAIL: "Admin@Example.COM", SUPER_ADMIN_NAME: "", ALLOW_REMOTE_DB: "" });
+    expect(env.SUPER_ADMIN_EMAIL).toBe("admin@example.com");
+    expect(env.SUPER_ADMIN_NAME).toBeUndefined();
+    expect(env.ALLOW_REMOTE_DB).toBe("0");
+  });
+
+  it("rejects an invalid SUPER_ADMIN_EMAIL", () => {
+    expect(() => parseEnv({ SUPER_ADMIN_EMAIL: "not-an-email" })).toThrow(/SUPER_ADMIN_EMAIL/);
   });
 });

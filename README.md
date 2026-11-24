@@ -23,7 +23,7 @@ The target design is in [docs/plan.md](docs/plan.md). More docs:
 | Node | `.nvmrc`         | Install [nvm](https://github.com/nvm-sh/nvm), then run `nvm use`. |
 | pnpm | `packageManager` | Run `corepack enable`. Use pnpm only.                             |
 
-Docker is not needed yet: `pnpm dev` uses the Supabase database from `DATABASE_URL`.
+Docker is needed only for the local database (`docker compose up -d --wait`). `pnpm dev` itself uses whatever `DATABASE_URL` points at.
 
 Git hooks (husky) are installed automatically by `pnpm install`. On commit, `lint-staged` formats and lints staged files, and `commitlint` rejects messages that are not conventional commits. Do not bypass them with `--no-verify`.
 
@@ -51,7 +51,17 @@ pnpm preview                               # build, then serve production output
 
 `pnpm preview` serves the web build at `http://localhost:4173` and the backend at `http://127.0.0.1:3000`. The preview server has no `/api` proxy, so for the web app to reach the backend set `VITE_API_URL=http://127.0.0.1:3000` (before the build) and `WEB_ORIGIN=http://localhost:4173` in `.env`.
 
-Database: migrations are additive only. Never run `prisma migrate reset` or `db push`; `DATABASE_URL` points at the real Supabase database.
+Database (local Postgres in Docker):
+
+```bash
+docker compose up -d --wait   # start Postgres on 127.0.0.1:5432 (set DB_PORT to change)
+# in .env: DATABASE_URL=postgresql://board:board_local_dev@127.0.0.1:5432/board  and  SUPER_ADMIN_EMAIL=you@example.com
+pnpm db:migrate               # prisma migrate dev (create and apply migrations)
+pnpm db:deploy                # prisma migrate deploy (apply existing migrations only)
+pnpm db:seed                  # create the first Super Admin (safe to repeat)
+```
+
+`db:*` scripts refuse a non-local `DATABASE_URL` unless `ALLOW_REMOTE_DB=1`. Migrations are additive only. Never run `prisma migrate reset` or `db push`; a hook blocks them, and Supabase is the real database.
 
 ## 🔐 Environment variables
 
@@ -66,6 +76,9 @@ Real values live only in the local `.env` file and in Render's Environment setti
 | `GOOGLE_CLIENT_SECRET` | `your-client-secret`                            | OAuth client secret from Google Cloud                                  | Yes    |
 | `GOOGLE_REDIRECT_URI`  | `http://localhost:3000/auth/google/callback`    | Differs between local and Render                                       | No     |
 | `WEB_ORIGIN`           | `https://web-name.onrender.com`                 | Web app address the API allows through CORS (backend). Empty = no CORS | No     |
+| `SUPER_ADMIN_EMAIL`    | `you@example.com`                               | Email of the first Super Admin created by `pnpm db:seed` (lowercased)  | No     |
+| `SUPER_ADMIN_NAME`     | `Ada Admin`                                     | Optional display name for that user (default: part before `@`)         | No     |
+| `ALLOW_REMOTE_DB`      | `1`                                             | Lets `db:migrate`/`db:deploy` run on a non-local database. Leave empty | No     |
 | `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = `/api` proxy)                 | No     |
 
 `DATABASE_URL` is optional for now (validated only when set). The backend does not read the `GOOGLE_*` variables yet; sign-in arrives in S1-AUTH-01.

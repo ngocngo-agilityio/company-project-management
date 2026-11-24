@@ -1,3 +1,4 @@
+import { normalizeEmail } from "@board/shared";
 import { z } from "zod";
 
 // Empty strings (e.g. `PORT=` copied from .env.example) are treated as unset.
@@ -16,6 +17,11 @@ const envSchema = z.object({
       .regex(/^postgres(ql)?:\/\//, "must be a postgres:// or postgresql:// URL")
       .optional(),
   ),
+  // First Super Admin created by `pnpm db:seed`. Optional for the server, required by the seed.
+  SUPER_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().pipe(z.email()).transform(normalizeEmail).optional()),
+  SUPER_ADMIN_NAME: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
+  // Set to 1 to let `pnpm db:migrate` / `db:deploy` run against a non-local database.
+  ALLOW_REMOTE_DB: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
 });
 
 export type Env = z.infer<typeof envSchema>;

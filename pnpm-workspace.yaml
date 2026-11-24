@@ -65,6 +65,7 @@ catalog:
   "@fastify/cors": 11.4.3
   prisma: 7.10.1
   "@prisma/client": 7.10.1
+  "@prisma/adapter-pg": 7.10.1
 
 minimumReleaseAgeExclude:
   - "@tanstack/query-core@5.108.1"
