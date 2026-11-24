@@ -11,8 +11,9 @@ paths:
   `docs/technical-stack.md`. No hardcoded colors or spacing. Tokens are not in the repo yet:
   add the token first, then use it. Dark theme changes tokens, not layout.
 - Reusable components go in `@board/ui`; screen-specific ones stay in `apps/web`.
-- In `packages/ui/src`, one folder per component: `<name>/<name>.tsx`, `<name>.test.tsx`,
-  later `<name>.stories.tsx`, and an `index.ts` for its public exports. Shared helpers go in `lib/`.
+- In `packages/ui/src/components`, one folder per component: `<name>/<name>.tsx`, `<name>.test.tsx`,
+  and `<name>.stories.tsx` (a11y-checked in light and dark). Public exports go in `src/index.ts`;
+  do not add an `index.ts` per component folder. Shared helpers go in `lib/`.
 - Every data screen handles loading, empty, error and success; Observers get a read-only screen.
 - Responsive from 375px. Under 900px the sidebar becomes a drawer. Touch targets at least 44px.
   Drag has no touch support: provide Move to... instead.

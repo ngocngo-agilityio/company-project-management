@@ -23,6 +23,20 @@ describe("Button", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it("shows a busy state and ignores clicks while loading", async () => {
+    const onClick = vi.fn();
+    render(
+      <Button onClick={onClick} loading>
+        Save
+      </Button>,
+    );
+    const button = screen.getByRole("button", { name: "Save" });
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it("applies the variant and keeps a touch-sized height", () => {
     render(<Button variant="danger">Delete</Button>);
     const button = screen.getByRole("button", { name: "Delete" });
