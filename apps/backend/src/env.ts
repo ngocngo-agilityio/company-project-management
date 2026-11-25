@@ -46,6 +46,14 @@ const envSchema = z.object({
   ),
   // Set to 1 to let `pnpm db:deploy` / `db:seed` run against a non-local database (never `db:migrate`).
   ALLOW_REMOTE_DB: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
+  // Google sign-in. All three are set together; the server requires them to start.
+  GOOGLE_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
+  GOOGLE_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
+  // Must match an authorized redirect URI in Google, e.g. https://api.example.com/auth/google/callback.
+  GOOGLE_REDIRECT_URI: z.preprocess(emptyToUndefined, z.url().optional()),
+  // 1 on Render: web and API are on different addresses, so the cookie is Secure + SameSite=None.
+  // 0 (default) for local development over plain http: SameSite=Lax, not Secure.
+  COOKIE_CROSS_SITE: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
 });
 
 export type Env = z.infer<typeof envSchema>;

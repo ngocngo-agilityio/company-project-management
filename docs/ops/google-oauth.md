@@ -4,8 +4,8 @@ How to let a second Google account through the consent screen on the Render addr
 if Google refuses. Done when a second personal Google account gets past consent on the Render
 address, or the Testing-mode steps below are in use.
 
-The backend does not read the `GOOGLE_*` variables yet (sign-in arrives in S1-AUTH-01), so this
-check stops at Google redirecting back to the callback address.
+This check was made before sign-in existed, so it stopped at Google redirecting back to the callback
+address. Sign-in is now built (S1-AUTH-01): see `docs/api.md` for the flow and the Render variables in the README.
 
 ## Result
 
