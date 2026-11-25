@@ -30,7 +30,10 @@ const envSchema = z.object({
       .optional(),
   ),
   // First Super Admin created by `pnpm db:seed`. Optional for the server, required by the seed.
-  SUPER_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().pipe(z.email()).transform(normalizeEmail).optional()),
+  SUPER_ADMIN_EMAIL: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().pipe(z.email()).transform(normalizeEmail).optional(),
+  ),
   SUPER_ADMIN_NAME: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
   // Company time zone saved by `pnpm db:seed` into `company_setting`. Must be an IANA name.
   COMPANY_TIMEZONE: z.preprocess(

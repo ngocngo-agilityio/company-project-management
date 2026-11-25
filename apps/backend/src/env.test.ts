@@ -76,6 +76,10 @@ describe("seed and db guard variables", () => {
     expect(env.ALLOW_REMOTE_DB).toBe("0");
   });
 
+  it("trims SUPER_ADMIN_EMAIL before validating it", () => {
+    expect(parseEnv({ SUPER_ADMIN_EMAIL: "  Admin@Example.com " }).SUPER_ADMIN_EMAIL).toBe("admin@example.com");
+  });
+
   it("rejects an invalid SUPER_ADMIN_EMAIL", () => {
     expect(() => parseEnv({ SUPER_ADMIN_EMAIL: "not-an-email" })).toThrow(/SUPER_ADMIN_EMAIL/);
   });
