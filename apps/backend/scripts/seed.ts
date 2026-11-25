@@ -2,7 +2,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { assertLocalDatabase } from "../src/db-guard.js";
 import { loadEnv } from "../src/env.js";
-import { seedSuperAdmin } from "../src/seed.js";
+import { seedCompanySetting, seedSuperAdmin } from "../src/seed.js";
 
 const env = loadEnv();
 if (!env.SUPER_ADMIN_EMAIL) {
@@ -15,6 +15,8 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: env.
 try {
   const admin = await seedSuperAdmin(prisma, { email: env.SUPER_ADMIN_EMAIL, name: env.SUPER_ADMIN_NAME });
   console.log(`Super Admin ready: ${admin.email}`);
+  const setting = await seedCompanySetting(prisma, { timezone: env.COMPANY_TIMEZONE });
+  console.log(`Company time zone: ${setting.timezone}`);
 } finally {
   await prisma.$disconnect();
 }

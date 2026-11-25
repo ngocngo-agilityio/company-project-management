@@ -4,26 +4,26 @@ Target architecture from the [Technical Stack](https://claude.ai/artifact/HxR9o2
 
 ## Stack
 
-| Area            | Choice                                                                                           | Status                                                |
-| --------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| Language        | TypeScript (strict)                                                                              | Done                                                  |
-| Monorepo        | pnpm workspaces + Turborepo, Node 22 LTS                                                         | Done                                                  |
-| Web app         | React 19, Vite, Tailwind 4, Radix UI, TanStack Query                                             | Done (skeleton)                                       |
-| Routing         | React Router                                                                                     | Planned (S1-UI-01)                                    |
-| Backend         | Fastify; serves the built web app and the REST API                                               | Done (`/health` only)                                 |
-| Database        | PostgreSQL on Supabase via Prisma 7 (session pooler, `prisma` role, Data API off)                | Prisma installed, no models yet (S1-BASE-02/03)       |
-| Local database  | Docker Compose Postgres, scripts `db:migrate`, `db:seed`                                         | Compose, schema, migration, seed written (S1-BASE-02) |
-| Sign-in         | `@fastify/oauth2` + Google; session rows; same-origin HttpOnly cookie                            | Planned (S1-AUTH-01)                                  |
-| Validation      | Zod, one schema shared by forms and API                                                          | Done (`@board/shared`)                                |
-| Drag and drop   | dnd-kit (mouse, pen); Move to... on touch                                                        | Planned (S3)                                          |
-| Unit tests      | Vitest (+ jsdom, Testing Library on web)                                                         | Done                                                  |
-| Browser tests   | Playwright at phone, tablet, computer sizes; `E2E=1` test login                                  | Planned                                               |
-| Components      | Storybook with the accessibility add-on                                                          | Done (S1-STORY-01)                                    |
-| Lint and format | ESLint 10, Prettier, husky, lint-staged, commitlint                                              | Done                                                  |
-| CI/CD           | GitHub Actions (lint, typecheck, unit, Storybook build and a11y, Playwright), Render auto-deploy | CI Done (no Playwright yet); Render Done              |
-| Dependencies    | Dependabot, weekly                                                                               | Done                                                  |
-| Hosting         | Render free web service (Singapore), Supabase free (Mumbai)                                      | Done                                                  |
-| Background jobs | `apps/worker` with pg-boss                                                                       | Later (not in M1-M4)                                  |
+| Area            | Choice                                                                                           | Status                                                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Language        | TypeScript (strict)                                                                              | Done                                                                                                                                   |
+| Monorepo        | pnpm workspaces + Turborepo, Node 22 LTS                                                         | Done                                                                                                                                   |
+| Web app         | React 19, Vite, Tailwind 4, Radix UI, TanStack Query                                             | Done (skeleton)                                                                                                                        |
+| Routing         | React Router                                                                                     | Planned (S1-UI-01)                                                                                                                     |
+| Backend         | Fastify; serves the built web app and the REST API                                               | Done (`/health` only)                                                                                                                  |
+| Database        | PostgreSQL on Supabase via Prisma 7 (session pooler, `prisma` role, Data API off)                | Core schema + `company_setting`; Render runs `db:deploy` on every deploy; runbook [docs/ops/supabase.md](ops/supabase.md) (S1-BASE-03) |
+| Local database  | Docker Compose Postgres, scripts `db:migrate`, `db:seed`                                         | Compose, schema, migration, seed written (S1-BASE-02)                                                                                  |
+| Sign-in         | `@fastify/oauth2` + Google; session rows; same-origin HttpOnly cookie                            | Planned (S1-AUTH-01)                                                                                                                   |
+| Validation      | Zod, one schema shared by forms and API                                                          | Done (`@board/shared`)                                                                                                                 |
+| Drag and drop   | dnd-kit (mouse, pen); Move to... on touch                                                        | Planned (S3)                                                                                                                           |
+| Unit tests      | Vitest (+ jsdom, Testing Library on web)                                                         | Done                                                                                                                                   |
+| Browser tests   | Playwright at phone, tablet, computer sizes; `E2E=1` test login                                  | Planned                                                                                                                                |
+| Components      | Storybook with the accessibility add-on                                                          | Done (S1-STORY-01)                                                                                                                     |
+| Lint and format | ESLint 10, Prettier, husky, lint-staged, commitlint                                              | Done                                                                                                                                   |
+| CI/CD           | GitHub Actions (lint, typecheck, unit, Storybook build and a11y, Playwright), Render auto-deploy | CI Done (no Playwright yet); Render Done                                                                                               |
+| Dependencies    | Dependabot, weekly                                                                               | Done                                                                                                                                   |
+| Hosting         | Render free web service (Singapore), Supabase free (Mumbai)                                      | Done                                                                                                                                   |
+| Background jobs | `apps/worker` with pg-boss                                                                       | Later (not in M1-M4)                                                                                                                   |
 
 ## Monorepo
 

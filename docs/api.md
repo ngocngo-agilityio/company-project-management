@@ -50,7 +50,7 @@
 
 ## Data model (summary)
 
-- Tables: `user`, `session`, `project`, `membership`, `invitation`, `board`, `list`, `card`, `card_assignee`, `label`, `card_label`, `checklist_item`, `comment`, `activity`, `notification`, `deletion_log`. Singular snake_case, uuid ids.
+- Tables: `user`, `session`, `project`, `membership`, `invitation`, `board`, `list`, `card`, `card_assignee`, `label`, `card_label`, `checklist_item`, `comment`, `activity`, `notification`, `deletion_log`, `company_setting`. Singular snake_case, uuid ids (except `company_setting`: one row, `id = 1`, holds install settings such as the company time zone).
 - Timestamps: `created_at`, `archived_at`, `expires_at`, `read_at`, `edited_at`.
 - `position` is a decimal on `board`, `list`, `card`, `checklist_item`. `list.is_finished` marks Finished lists.
 - Archive is `archived_at`. Permanent delete only for archived items and writes a `deletion_log` row. Comments are hard-deleted. `activity` is append-only.

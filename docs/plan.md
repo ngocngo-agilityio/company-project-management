@@ -94,7 +94,7 @@ M1 week 1, M2 week 2, M3 week 3, M4 week 4. Each sprint ends with a demo: M1 Pro
 
 ## Open questions
 
-Region for Render and Supabase (Singapore if both offer it), whether Google accepts the Render address (try Day 3), first Super Admin email, company time zone, when to upgrade the free plans, error tracking after the demo.
+Region for Render and Supabase (Singapore if both offer it), whether Google accepts the Render address (try Day 3), first Super Admin email, when to upgrade the free plans, error tracking after the demo.
 
 ## Later (V2, no dates)
 
