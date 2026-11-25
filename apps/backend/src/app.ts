@@ -1,6 +1,7 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import type { HealthResponse } from "@board/shared";
+import { aboutPage, privacyPage } from "./pages.js";
 
 export function buildApp({ logger = false, webOrigin }: { logger?: boolean; webOrigin?: string } = {}) {
   const app = Fastify({ logger });
@@ -11,6 +12,10 @@ export function buildApp({ logger = false, webOrigin }: { logger?: boolean; webO
   }
 
   app.get("/health", async (): Promise<HealthResponse> => ({ ok: true }));
+
+  // Public pages (no sign-in): Google requires a homepage and a privacy policy on the consent screen.
+  app.get("/about", async (_req, reply) => reply.type("text/html; charset=utf-8").send(aboutPage()));
+  app.get("/privacy", async (_req, reply) => reply.type("text/html; charset=utf-8").send(privacyPage()));
 
   return app;
 }

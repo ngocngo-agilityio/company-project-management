@@ -83,6 +83,12 @@ Real values live only in the local `.env` file and in Render's Environment setti
 
 `DATABASE_URL` is optional for now (validated only when set). The backend does not read the `GOOGLE_*` variables yet; sign-in arrives in S1-AUTH-01.
 
+## 🔑 Google sign-in on Render
+
+Redirect URI on Render: `https://company-project-management-mmqg.onrender.com/auth/google/callback` (the backend serves the callback; keep the localhost URI too). The consent screen is External with only the `openid`, `email` and `profile` scopes and no logo. Google needs a homepage and a privacy policy to publish it; the backend serves them at `/about` and `/privacy`.
+
+Result of the second-account check: pending (see the Result table). If Google refuses, keep Testing mode and add test users by hand (**Audience → Test users**; only listed users can sign in, refresh tokens expire after 7 days). Steps and fallback: [docs/ops/google-oauth.md](docs/ops/google-oauth.md).
+
 ## 🎨 Design
 
 Screens follow the Design canvas: https://claude.ai/artifact/4RdpWWAP1kveEi7S5zBYHG
