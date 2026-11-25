@@ -9,9 +9,9 @@ check stops at Google redirecting back to the callback address.
 
 ## Result
 
-| Date | Outcome                       | Notes |
-| ---- | ----------------------------- | ----- |
-| TBD  | Pending: fill in after step 4 |       |
+| Date       | Outcome                                                       | Notes                                                                                                                                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-25 | Passed: second account got past consent on the Render address | Publishing status In production, scopes `openid`, `email`, `profile`. No "unverified app" notice was shown. Google redirected to `/auth/google/callback?code=...`; the 404 there is expected until S1-AUTH-01. The consent screen showed the Render host as the app name. |
 
 ## 1. Add the redirect URI
 
