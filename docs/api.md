@@ -4,7 +4,7 @@
 
 ## Conventions
 
-- All responses are JSON. Routes live under `/api`, except auth and `/health`.
+- All responses are JSON. Routes live under `/api`, except auth, `/health` and the public pages `/about` and `/privacy` (HTML, no sign-in; Google asks for them on the consent screen).
 - Input is validated with Zod (schemas in `@board/shared`).
 - Status codes: `400` Zod refusal with a clear message; `401` not signed in; `403` role refuses; `404` item not visible, including a resource in a project the person is not in.
 - `POST`, `PATCH`, `DELETE` check the `Origin` header. Sign-in and invitation routes are rate limited.
@@ -18,6 +18,7 @@
 | Auth          | `GET /auth/google`, `GET /auth/google/callback`                                                  | A                           |
 |               | `POST /auth/logout`, `GET /api/me`                                                               | S                           |
 |               | `GET /health`                                                                                    | A                           |
+|               | `GET /about`, `GET /privacy` (public HTML pages)                                                 | A                           |
 | Projects      | `GET /api/projects`                                                                              | S                           |
 |               | `POST /api/projects`, `PATCH /api/projects/:id`                                                  | SA                          |
 |               | `GET /api/projects/:id/members`                                                                  | AM                          |

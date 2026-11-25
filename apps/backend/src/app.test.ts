@@ -12,6 +12,28 @@ describe("GET /health", () => {
   });
 });
 
+describe("public pages", () => {
+  it.each([
+    ["/about", "Company Board"],
+    ["/privacy", "Privacy policy"],
+  ])("GET %s answers HTML without sign-in", async (url, text) => {
+    const app = buildApp();
+    const res = await app.inject({ method: "GET", url });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/^text\/html/);
+    expect(res.body).toContain(text);
+    expect(res.headers["set-cookie"]).toBeUndefined();
+    await app.close();
+  });
+
+  it("the privacy page shows a contact address", async () => {
+    const app = buildApp();
+    const res = await app.inject({ method: "GET", url: "/privacy" });
+    expect(res.body).toMatch(/mailto:[^"\s]+@[^"\s]+/);
+    await app.close();
+  });
+});
+
 describe("CORS", () => {
   const WEB = "https://web.example.com";
 
