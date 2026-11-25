@@ -19,3 +19,14 @@ describe("hand-written indexes", () => {
     expect(dropped.map((m) => m.name)).toEqual([]);
   });
 });
+
+// CHECK constraints Prisma cannot express in schema.prisma (it ignores them, so no drift).
+const HAND_WRITTEN_CHECKS = ["company_setting_single_row"];
+
+describe("hand-written check constraints", () => {
+  it.each(HAND_WRITTEN_CHECKS)("%s is added and never dropped", (constraint) => {
+    expect(migrations.some((m) => m.sql.includes(`ADD CONSTRAINT "${constraint}" CHECK`))).toBe(true);
+    const dropped = migrations.filter((m) => new RegExp(`DROP CONSTRAINT[^;]*"${constraint}"`).test(m.sql));
+    expect(dropped.map((m) => m.name)).toEqual([]);
+  });
+});

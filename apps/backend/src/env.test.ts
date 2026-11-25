@@ -39,6 +39,7 @@ describe("parseEnv", () => {
       HOST: "127.0.0.1",
       DATABASE_URL: DB,
       ALLOW_REMOTE_DB: "0",
+      COMPANY_TIMEZONE: "Asia/Ho_Chi_Minh",
     });
   });
 
@@ -75,7 +76,27 @@ describe("seed and db guard variables", () => {
     expect(env.ALLOW_REMOTE_DB).toBe("0");
   });
 
+  it("trims SUPER_ADMIN_EMAIL before validating it", () => {
+    expect(parseEnv({ SUPER_ADMIN_EMAIL: "  Admin@Example.com " }).SUPER_ADMIN_EMAIL).toBe("admin@example.com");
+  });
+
   it("rejects an invalid SUPER_ADMIN_EMAIL", () => {
     expect(() => parseEnv({ SUPER_ADMIN_EMAIL: "not-an-email" })).toThrow(/SUPER_ADMIN_EMAIL/);
+  });
+});
+
+describe("COMPANY_TIMEZONE", () => {
+  it("defaults to Asia/Ho_Chi_Minh when unset or empty", () => {
+    expect(parseEnv({}).COMPANY_TIMEZONE).toBe("Asia/Ho_Chi_Minh");
+    expect(parseEnv({ COMPANY_TIMEZONE: "" }).COMPANY_TIMEZONE).toBe("Asia/Ho_Chi_Minh");
+  });
+
+  it("accepts an IANA name and trims it", () => {
+    expect(parseEnv({ COMPANY_TIMEZONE: " Europe/Paris " }).COMPANY_TIMEZONE).toBe("Europe/Paris");
+    expect(parseEnv({ COMPANY_TIMEZONE: "UTC" }).COMPANY_TIMEZONE).toBe("UTC");
+  });
+
+  it("rejects an unknown time zone", () => {
+    expect(() => parseEnv({ COMPANY_TIMEZONE: "Mars/Olympus" })).toThrow(/COMPANY_TIMEZONE/);
   });
 });

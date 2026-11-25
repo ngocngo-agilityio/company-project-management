@@ -140,3 +140,15 @@ model List {
   @@index([boardId, position])
   @@map("list")
 }
+
+// Install settings, read from the environment by the seed. Exactly one row (id = 1): the
+// CHECK constraint that enforces it is written by hand in the migration SQL.
+model CompanySetting {
+  id        Int      @id @default(1)
+  // IANA time zone name, e.g. Asia/Ho_Chi_Minh. Due dates are shown in this zone.
+  timezone  String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("company_setting")
+}

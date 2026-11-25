@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { seedSuperAdmin, type SeedUserClient } from "./seed.js";
+import { seedCompanySetting, seedSuperAdmin, type SeedSettingClient, type SeedUserClient } from "./seed.js";
 
 /** In-memory stand-in that behaves like `upsert` on a unique email. */
 function fakeDb() {
@@ -36,5 +36,34 @@ describe("seedSuperAdmin", () => {
     await seedSuperAdmin(db, { email: "a@b.co" });
     await seedSuperAdmin(db, { email: "A@B.co", name: "Other" });
     expect(rows.size).toBe(1);
+  });
+});
+
+describe("seedCompanySetting", () => {
+  function fakeSettings() {
+    let row: { id: number; timezone: string } | undefined;
+    const db: SeedSettingClient = {
+      companySetting: {
+        async upsert({ create }) {
+          row ??= { ...create };
+          return row;
+        },
+      },
+    };
+    return { db, get: () => row };
+  }
+
+  it("creates the single row with the time zone", async () => {
+    const { db, get } = fakeSettings();
+    await seedCompanySetting(db, { timezone: "Asia/Ho_Chi_Minh" });
+    expect(get()).toEqual({ id: 1, timezone: "Asia/Ho_Chi_Minh" });
+  });
+
+  it("does not overwrite an existing time zone", async () => {
+    const { db, get } = fakeSettings();
+    await seedCompanySetting(db, { timezone: "Asia/Ho_Chi_Minh" });
+    const again = await seedCompanySetting(db, { timezone: "Europe/Paris" });
+    expect(again.timezone).toBe("Asia/Ho_Chi_Minh");
+    expect(get()?.timezone).toBe("Asia/Ho_Chi_Minh");
   });
 });

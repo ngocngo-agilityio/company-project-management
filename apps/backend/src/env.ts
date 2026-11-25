@@ -4,6 +4,18 @@ import { z } from "zod";
 // Empty strings (e.g. `PORT=` copied from .env.example) are treated as unset.
 const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
 
+export const DEFAULT_COMPANY_TIMEZONE = "Asia/Ho_Chi_Minh";
+
+/** True for a time zone name the runtime knows (IANA, e.g. Asia/Ho_Chi_Minh or UTC). */
+export function isTimeZone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const envSchema = z.object({
   PORT: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(65535).default(3000)),
   HOST: z.preprocess(emptyToUndefined, z.string().default("127.0.0.1")),
@@ -18,8 +30,20 @@ const envSchema = z.object({
       .optional(),
   ),
   // First Super Admin created by `pnpm db:seed`. Optional for the server, required by the seed.
-  SUPER_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().pipe(z.email()).transform(normalizeEmail).optional()),
+  SUPER_ADMIN_EMAIL: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().pipe(z.email()).transform(normalizeEmail).optional(),
+  ),
   SUPER_ADMIN_NAME: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
+  // Company time zone saved by `pnpm db:seed` into `company_setting`. Must be an IANA name.
+  COMPANY_TIMEZONE: z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .trim()
+      .refine(isTimeZone, "must be an IANA time zone name, e.g. Asia/Ho_Chi_Minh")
+      .default(DEFAULT_COMPANY_TIMEZONE),
+  ),
   // Set to 1 to let `pnpm db:deploy` / `db:seed` run against a non-local database (never `db:migrate`).
   ALLOW_REMOTE_DB: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
 });
