@@ -14,6 +14,7 @@ In Supabase, open **SQL Editor** and run this once. Replace the password with a 
 create user "prisma" with password '<strong-password>' bypassrls;
 grant "prisma" to "postgres";
 
+grant create on database postgres to prisma;
 grant usage, create on schema public to prisma;
 grant all on all tables in schema public to prisma;
 grant all on all routines in schema public to prisma;
@@ -25,6 +26,23 @@ alter default privileges for role postgres in schema public grant all on sequenc
 
 No `createdb`: it is only needed for the shadow database of `prisma migrate dev`, which never runs
 against Supabase (`db:migrate` refuses a remote database).
+
+`grant create on database postgres` is needed because the first migration starts with
+`CREATE SCHEMA IF NOT EXISTS "public"`, and PostgreSQL checks the CREATE right on the database
+before it sees that the schema exists. Without it `migrate deploy` fails with
+`permission denied for database postgres` (42501).
+
+### If a deploy already failed with that error
+
+Run the grant above, then mark the failed migration as rolled back (nothing was applied: the
+migration failed on its first statement), so the next deploy can retry it. In the SQL Editor:
+
+```sql
+update _prisma_migrations set rolled_back_at = now()
+where finished_at is null and rolled_back_at is null;
+```
+
+This is what `prisma migrate resolve --rolled-back <migration>` does. Then redeploy on Render.
 
 ## 2. Turn the Data API off
 
