@@ -1,5 +1,9 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { buildApp } from "./app.js";
+import { createGoogleAuth } from "./auth/google.js";
+import { createPrismaAuthStore } from "./auth/prisma-store.js";
 import { loadEnv, type Env } from "./env.js";
+import { PrismaClient } from "./generated/prisma/client.js";
 
 let env: Env;
 try {
@@ -8,7 +12,37 @@ try {
   console.error((err as Error).message);
   process.exit(1);
 }
-const app = buildApp({ logger: true, webOrigin: env.WEB_ORIGIN });
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, DATABASE_URL, WEB_ORIGIN } = env;
+const missing = Object.entries({
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+  DATABASE_URL,
+  WEB_ORIGIN,
+})
+  .filter(([, value]) => !value)
+  .map(([name]) => name);
+if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI || !DATABASE_URL || !WEB_ORIGIN) {
+  console.error(`Sign-in needs these variables: ${missing.join(", ")}`);
+  process.exit(1);
+}
+
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: DATABASE_URL }) });
+const crossSite = env.COOKIE_CROSS_SITE === "1";
+const app = buildApp({
+  logger: true,
+  webOrigin: WEB_ORIGIN,
+  auth: {
+    store: createPrismaAuthStore(prisma),
+    google: createGoogleAuth({
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
+      redirectUri: GOOGLE_REDIRECT_URI,
+      secureCookies: crossSite,
+    }),
+    crossSite,
+  },
+});
 
 let shuttingDown = false;
 
@@ -19,6 +53,7 @@ async function shutdown(code = 0) {
   setTimeout(() => process.exit(1), 10_000).unref();
   try {
     await app.close();
+    await prisma.$disconnect();
     process.exit(code);
   } catch (err) {
     app.log.error(err);

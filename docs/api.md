@@ -8,7 +8,12 @@
 - Input is validated with Zod (schemas in `@board/shared`).
 - Status codes: `400` Zod refusal with a clear message; `401` not signed in; `403` role refuses; `404` item not visible, including a resource in a project the person is not in.
 - `POST`, `PATCH`, `DELETE` check the `Origin` header. Sign-in and invitation routes are rate limited.
-- Session: same-origin HttpOnly cookie, session row in PostgreSQL.
+- Session: a row in `session` and an HttpOnly cookie `sid` holding its id. It lasts 7 days from the last use and is extended when used. An expired or unknown session answers 401 and its row is deleted; there is no cleanup job.
+- Cookie flags depend on `COOKIE_CROSS_SITE`. `1` (Render: web and API on different addresses): `Secure; SameSite=None`. `0` (local, one origin through the Vite proxy): `SameSite=Lax`, not Secure.
+- Risk: with two addresses the cookie is third party. Safari and strict browser settings may block it, and sign-in then looks like it works but `/api/me` answers 401. Fix: serve web and API from one address (see Technical Stack).
+- Sign-in (`GET /auth/google` then `/auth/google/callback`): Google scopes `openid email profile`, `state` and PKCE (S256). The email is trusted only when Google says it is verified. Only a person who already has a `user` row, or the same Google account id, gets a session. Otherwise the browser goes to `WEB_ORIGIN/login?error=<code>` with `not_invited`, `unverified_email`, `deactivated` or `oauth_failed` (no personal data in the URL). Success goes to `WEB_ORIGIN/`.
+- `GET /api/me` answers `{ id, email, name, avatarUrl, isSuperAdmin }`, or 401 `{ error: "unauthorized" }`. `POST /auth/logout` deletes the row, clears the cookie and answers 204.
+- `/auth/*` is limited to 10 requests a minute per address (429).
 - Who: **S** signed in, **A** anyone, **AM** any member of the project, **M+** Member or above, **O+** Owner or Super Admin, **SA** Super Admin.
 
 ## Endpoints

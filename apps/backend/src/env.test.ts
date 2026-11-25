@@ -40,7 +40,29 @@ describe("parseEnv", () => {
       DATABASE_URL: DB,
       ALLOW_REMOTE_DB: "0",
       COMPANY_TIMEZONE: "Asia/Ho_Chi_Minh",
+      COOKIE_CROSS_SITE: "0",
     });
+  });
+
+  it("reads the Google sign-in variables and treats empty ones as unset", () => {
+    expect(parseEnv({ GOOGLE_CLIENT_ID: "", GOOGLE_CLIENT_SECRET: "", GOOGLE_REDIRECT_URI: "" })).toMatchObject({
+      GOOGLE_CLIENT_ID: undefined,
+      GOOGLE_CLIENT_SECRET: undefined,
+      GOOGLE_REDIRECT_URI: undefined,
+    });
+    const set = parseEnv({
+      GOOGLE_CLIENT_ID: "id",
+      GOOGLE_CLIENT_SECRET: "secret",
+      GOOGLE_REDIRECT_URI: "http://localhost:3000/auth/google/callback",
+    });
+    expect(set.GOOGLE_REDIRECT_URI).toBe("http://localhost:3000/auth/google/callback");
+    expect(() => parseEnv({ GOOGLE_REDIRECT_URI: "not a url" })).toThrow(/GOOGLE_REDIRECT_URI/);
+  });
+
+  it("COOKIE_CROSS_SITE is 0 or 1 and defaults to 0", () => {
+    expect(parseEnv({ COOKIE_CROSS_SITE: "1" }).COOKIE_CROSS_SITE).toBe("1");
+    expect(parseEnv({ COOKIE_CROSS_SITE: "" }).COOKIE_CROSS_SITE).toBe("0");
+    expect(() => parseEnv({ COOKIE_CROSS_SITE: "yes" })).toThrow(/COOKIE_CROSS_SITE/);
   });
 
   it("allows WEB_ORIGIN to be unset or empty and rejects a non-URL", () => {

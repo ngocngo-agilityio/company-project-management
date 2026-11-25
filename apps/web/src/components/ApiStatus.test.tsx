@@ -28,7 +28,7 @@ describe("API status", () => {
     mockFetch(() => Promise.resolve(Response.json({ ok: true })));
     renderStatus();
     expect(await screen.findByText("API: ok")).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith("/api/health", expect.anything());
+    expect(fetch).toHaveBeenCalledWith("/health", expect.anything());
   });
 
   it("shows unreachable on a network error", async () => {

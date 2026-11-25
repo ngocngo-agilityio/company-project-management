@@ -20,12 +20,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       port: 5173,
-      proxy: {
-        "/api": {
-          target: `http://${host}:${port}`,
-          rewrite: (path: string) => path.replace(/^\/api/, ""),
-        },
-      },
+      // Same paths as production (/health, /api/*, /auth/*), so the session cookie stays on one origin.
+      proxy: Object.fromEntries(["/health", "/api", "/auth"].map((path) => [path, `http://${host}:${port}`])),
     },
     preview: {
       port: 4173,

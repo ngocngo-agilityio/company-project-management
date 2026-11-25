@@ -79,9 +79,10 @@ Real values live only in the local `.env` file and in Render's Environment setti
 | `SUPER_ADMIN_EMAIL`    | `you@example.com`                               | Email of the first Super Admin created by `pnpm db:seed` (lowercased)  | No     |
 | `SUPER_ADMIN_NAME`     | `Ada Admin`                                     | Optional display name for that user (default: part before `@`)         | No     |
 | `ALLOW_REMOTE_DB`      | `1`                                             | Lets `db:deploy`/`db:seed` run on a non-local database. Leave empty    | No     |
-| `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = `/api` proxy)                 | No     |
+| `COOKIE_CROSS_SITE`    | `1`                                             | `1` on Render (cookie Secure + SameSite=None). Empty locally (Lax)     | No     |
+| `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = Vite dev proxy)               | No     |
 
-`DATABASE_URL` is optional for now (validated only when set). The backend does not read the `GOOGLE_*` variables yet; sign-in arrives in S1-AUTH-01.
+`DATABASE_URL`, `WEB_ORIGIN` and the three `GOOGLE_*` variables are all required to start the backend (it signs people in). On Render set `COOKIE_CROSS_SITE=1`; leave it empty locally.
 
 ## 🎨 Design
 

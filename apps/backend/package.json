@@ -20,7 +20,10 @@
     "@board/shared": "workspace:*",
     "@prisma/adapter-pg": "catalog:",
     "@prisma/client": "catalog:",
+    "@fastify/cookie": "catalog:",
     "@fastify/cors": "catalog:",
+    "@fastify/oauth2": "catalog:",
+    "@fastify/rate-limit": "catalog:",
     "fastify": "catalog:",
     "zod": "catalog:"
   },

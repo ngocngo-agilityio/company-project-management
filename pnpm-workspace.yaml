@@ -63,6 +63,9 @@ catalog:
   # backend
   fastify: 5.12.8
   "@fastify/cors": 11.4.3
+  "@fastify/cookie": 11.1.5
+  "@fastify/oauth2": 8.3.2
+  "@fastify/rate-limit": 11.3.0
   prisma: 7.10.1
   "@prisma/client": 7.10.1
   "@prisma/adapter-pg": 7.10.1
