@@ -46,6 +46,7 @@ const app = buildApp({
       secureCookies: crossSite,
     }),
     crossSite,
+    superAdminEmail: env.SUPER_ADMIN_EMAIL,
   },
 });
 
