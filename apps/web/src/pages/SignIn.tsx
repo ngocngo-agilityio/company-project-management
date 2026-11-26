@@ -1,4 +1,4 @@
-import { signInErrorSchema } from "@board/shared";
+import { SIGN_IN_ERROR, signInErrorSchema } from "@board/shared";
 import type { ReactNode } from "react";
 import { Navigate, useSearchParams } from "react-router";
 import { useMe } from "../api/useMe";
@@ -20,10 +20,17 @@ export function SignIn() {
 
   const raw = params.get("error");
   const error = signInErrorSchema.safeParse(raw).data ?? null;
-  if (error === "not_invited" || error === "deactivated") return page(<NotInvitedCard reason={error} />);
+  if (error === SIGN_IN_ERROR.NOT_INVITED || error === SIGN_IN_ERROR.DEACTIVATED)
+    return page(<NotInvitedCard reason={error} />);
 
   const failure =
-    raw === null ? null : error === "access_denied" ? "cancelled" : error === "rate_limited" ? "rateLimited" : "failed";
+    raw === null
+      ? null
+      : error === SIGN_IN_ERROR.ACCESS_DENIED
+        ? "cancelled"
+        : error === SIGN_IN_ERROR.RATE_LIMITED
+          ? "rateLimited"
+          : "failed";
   return page(<SignInCard failure={failure} />);
 }
 
