@@ -1,19 +1,11 @@
 import { Alert, Button, Logo } from "@board/ui";
 import { GOOGLE_SIGN_IN_URL } from "../api/client";
+import { SIGN_IN_FAILURE_MESSAGES, SIGN_IN_INVITE_ONLY_NOTE } from "../messages";
 import { GoogleIcon } from "./GoogleIcon";
-
-const FAILURES = {
-  cancelled: {
-    title: "Sign-in was cancelled.",
-    text: "You closed Google before finishing. Try again when you are ready.",
-  },
-  rateLimited: { title: "Too many sign-in attempts.", text: "Please wait a minute, then try again." },
-  failed: { title: "Sign-in failed.", text: "Something went wrong with Google. Please try again." },
-} as const;
 
 type SignInCardProps = {
   /** Set when the person came back from Google without signing in (not an invitation problem). */
-  failure: keyof typeof FAILURES | null;
+  failure: keyof typeof SIGN_IN_FAILURE_MESSAGES | null;
 };
 
 /** Sign-in card from the Design canvas: logo, one Google button, and the invitation-only note. */
@@ -29,7 +21,7 @@ export function SignInCard({ failure }: SignInCardProps) {
       </div>
       {failure ? (
         <Alert
-          title={FAILURES[failure].title}
+          title={SIGN_IN_FAILURE_MESSAGES[failure].TITLE}
           action={
             failure === "rateLimited" ? undefined : (
               <Button variant="danger" asChild>
@@ -38,7 +30,7 @@ export function SignInCard({ failure }: SignInCardProps) {
             )
           }
         >
-          {FAILURES[failure].text}
+          {SIGN_IN_FAILURE_MESSAGES[failure].TEXT}
         </Alert>
       ) : null}
       <Button variant="secondary" asChild className="min-h-11 w-full rounded-10 py-3 text-body">
@@ -48,8 +40,7 @@ export function SignInCard({ failure }: SignInCardProps) {
         </a>
       </Button>
       <p className="w-full rounded-10 bg-surface-2 px-3.5 py-3 text-left text-body-small text-ink-muted">
-        Access is by invitation only. If you cannot sign in, ask a Project Owner or the Super Admin to invite your email
-        address.
+        {SIGN_IN_INVITE_ONLY_NOTE}
       </p>
     </div>
   );

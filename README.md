@@ -67,21 +67,22 @@ pnpm db:seed                  # create the first Super Admin (safe to repeat)
 
 Real values live only in the local `.env` file and in Render's Environment settings. Do not commit `.env`, and do not put secrets in this README.
 
-| Variable               | Example                                         | Description                                                                           | Secret |
-| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------- | ------ |
-| `PORT`                 | `3000`                                          | Backend port                                                                          | No     |
-| `HOST`                 | `127.0.0.1`                                     | Backend bind address                                                                  | No     |
-| `DATABASE_URL`         | `postgresql://USER:PASSWORD@HOST:5432/postgres` | Supabase connection string (use the Session pooler URL)                               | Yes    |
-| `GOOGLE_CLIENT_ID`     | `xxxx.apps.googleusercontent.com`               | OAuth client ID from Google Cloud                                                     | No     |
-| `GOOGLE_CLIENT_SECRET` | `your-client-secret`                            | OAuth client secret from Google Cloud                                                 | Yes    |
-| `GOOGLE_REDIRECT_URI`  | `http://localhost:3000/auth/google/callback`    | Differs between local and Render                                                      | No     |
-| `WEB_ORIGIN`           | `https://web-name.onrender.com`                 | Web app address the API allows through CORS (backend). Empty = no CORS                | No     |
-| `SUPER_ADMIN_EMAIL`    | `you@example.com`                               | Email of the first Super Admin created by `pnpm db:seed` (lowercased)                 | No     |
-| `SUPER_ADMIN_NAME`     | `Ada Admin`                                     | Optional display name for that user (default: part before `@`)                        | No     |
-| `ALLOW_REMOTE_DB`      | `1`                                             | Lets `db:deploy`/`db:seed` run on a non-local database. Leave empty                   | No     |
-| `COOKIE_CROSS_SITE`    | `1`                                             | `1` on Render (cookie Secure + SameSite=None). Empty locally (Lax)                    | No     |
-| `TRUST_PROXY`          | `1`                                             | `1` on Render (API behind a proxy: rate limit reads `X-Forwarded-For`). Empty locally | No     |
-| `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = Vite dev proxy)                              | No     |
+| Variable               | Example                                         | Description                                                                                                              | Secret |
+| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------ |
+| `PORT`                 | `3000`                                          | Backend port                                                                                                             | No     |
+| `HOST`                 | `127.0.0.1`                                     | Backend bind address                                                                                                     | No     |
+| `DATABASE_URL`         | `postgresql://USER:PASSWORD@HOST:5432/postgres` | Supabase connection string (use the Session pooler URL)                                                                  | Yes    |
+| `GOOGLE_CLIENT_ID`     | `xxxx.apps.googleusercontent.com`               | OAuth client ID from Google Cloud                                                                                        | No     |
+| `GOOGLE_CLIENT_SECRET` | `your-client-secret`                            | OAuth client secret from Google Cloud                                                                                    | Yes    |
+| `GOOGLE_REDIRECT_URI`  | `http://localhost:3000/auth/google/callback`    | Differs between local and Render                                                                                         | No     |
+| `WEB_ORIGIN`           | `https://web-name.onrender.com`                 | Web app address the API allows through CORS (backend). Empty = no CORS                                                   | No     |
+| `SUPER_ADMIN_EMAIL`    | `you@example.com`                               | Email of the first Super Admin created by `pnpm db:seed` (lowercased)                                                    | No     |
+| `SUPER_ADMIN_NAME`     | `Ada Admin`                                     | Optional display name for that user (default: part before `@`)                                                           | No     |
+| `ALLOW_REMOTE_DB`      | `1`                                             | Lets `db:deploy`/`db:seed` run on a non-local database. Leave empty                                                      | No     |
+| `COOKIE_CROSS_SITE`    | `1`                                             | `1` on Render (cookie Secure + SameSite=None). Empty locally (Lax)                                                       | No     |
+| `TRUST_PROXY`          | `1`                                             | `1` on Render (API behind a proxy: rate limit reads `X-Forwarded-For`). Empty locally                                    | No     |
+| `CONTACT_EMAIL`        | `help@example.com`                              | Contact address on the public `/about` and `/privacy` pages. Google asks for one on the consent screen; set it on Render | No     |
+| `VITE_API_URL`         | `https://api-name.onrender.com`                 | API address the web build calls (empty = Vite dev proxy)                                                                 | No     |
 
 `DATABASE_URL`, `WEB_ORIGIN` and the three `GOOGLE_*` variables are all required to start the backend (it signs people in). On Render set `COOKIE_CROSS_SITE=1` and `TRUST_PROXY=1`; leave both empty locally.
 
