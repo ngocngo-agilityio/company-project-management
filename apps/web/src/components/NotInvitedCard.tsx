@@ -1,19 +1,20 @@
+import { SIGN_IN_ERROR, type SignInError } from "@board/shared";
 import { Button } from "@board/ui";
 import { Lock } from "lucide-react";
 import { Link } from "react-router";
 
 type NotInvitedCardProps = {
   /** `not_invited`: no invitation. `deactivated`: removed from its last project (Inactive). */
-  reason: "not_invited" | "deactivated";
+  reason: Extract<SignInError, "not_invited" | "deactivated">;
 };
 
 const COPY = {
-  not_invited: {
+  [SIGN_IN_ERROR.NOT_INVITED]: {
     title: "You have not been invited",
     text: "Company Board is open by invitation only, and this Google account has no invitation.",
     note: "Ask a Project Owner or the Super Admin to send an invitation to your Google email address. Invitations expire after 14 days.",
   },
-  deactivated: {
+  [SIGN_IN_ERROR.DEACTIVATED]: {
     title: "Your account is inactive",
     text: "This Google account has been removed from all projects, so it cannot sign in.",
     note: "Ask a Project Owner or the Super Admin to invite your Google email address again.",

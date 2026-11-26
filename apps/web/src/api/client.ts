@@ -1,4 +1,10 @@
-import { healthResponseSchema, meResponseSchema, type HealthResponse, type MeResponse } from "@board/shared";
+import {
+  HTTP_STATUS,
+  healthResponseSchema,
+  meResponseSchema,
+  type HealthResponse,
+  type MeResponse,
+} from "@board/shared";
 
 // Production: absolute URL of the API service (VITE_API_URL). Local dev: empty, the Vite proxy forwards
 // /health, /api and /auth to the backend.
@@ -19,7 +25,7 @@ export async function fetchHealth(): Promise<HealthResponse> {
 /** The signed-in person, or null when there is no valid session (401). The cookie crosses addresses. */
 export async function fetchMe(): Promise<MeResponse | null> {
   const res = await fetch(`${API_URL}/api/me`, { credentials: "include" });
-  if (res.status === 401) return null;
+  if (res.status === HTTP_STATUS.UNAUTHORIZED) return null;
   if (!res.ok) throw new Error(`API answered ${res.status}`);
   return meResponseSchema.parse(await res.json());
 }

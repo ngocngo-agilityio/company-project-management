@@ -1,3 +1,4 @@
+import { API_ERROR, HTTP_STATUS } from "@board/shared";
 import type { FastifyInstance } from "fastify";
 
 const UNSAFE_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
@@ -15,7 +16,7 @@ export function registerOriginCheck(app: FastifyInstance, webOrigin?: string): v
     const origin = request.headers.origin;
     if (!origin) return;
     if (!isAllowed(origin, allowed, request.headers.host)) {
-      return reply.code(403).send({ error: "forbidden_origin" });
+      return reply.code(HTTP_STATUS.FORBIDDEN).send({ error: API_ERROR.FORBIDDEN_ORIGIN });
     }
   });
 }

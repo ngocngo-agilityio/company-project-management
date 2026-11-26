@@ -1,6 +1,15 @@
 import fastifyCookie from "@fastify/cookie";
 import fastifyRateLimit from "@fastify/rate-limit";
-import { normalizeEmail, SESSION_COOKIE_NAME, type ApiError, type MeResponse, type SignInError } from "@board/shared";
+import {
+  API_ERROR,
+  HTTP_STATUS,
+  normalizeEmail,
+  SESSION_COOKIE_NAME,
+  SIGN_IN_ERROR,
+  type ApiError,
+  type MeResponse,
+  type SignInError,
+} from "@board/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { GoogleAuth } from "../services/google.js";
@@ -60,12 +69,20 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   // The browser goes straight to /auth/google, so a too-many-attempts answer would show as raw JSON.
   // Send it back to the sign-in screen with a code instead. Other routes keep the JSON answer.
   app.setErrorHandler((error: { statusCode?: number; message?: string }, request, reply) => {
-    if (error.statusCode === 429 && request.method === "GET" && request.url.startsWith("/auth/google")) {
-      return fail(reply, "rate_limited");
+    if (
+      error.statusCode === HTTP_STATUS.TOO_MANY_REQUESTS &&
+      request.method === "GET" &&
+      request.url.startsWith("/auth/google")
+    ) {
+      return fail(reply, SIGN_IN_ERROR.RATE_LIMITED);
     }
     return reply
-      .code(error.statusCode ?? 500)
-      .send(error.statusCode && error.statusCode < 500 ? error : { error: "internal_error" });
+      .code(error.statusCode ?? HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .send(
+        error.statusCode && error.statusCode < HTTP_STATUS.INTERNAL_SERVER_ERROR
+          ? error
+          : { error: API_ERROR.INTERNAL_ERROR },
+      );
   });
 
   const sessionIdFrom = (request: FastifyRequest): string | null => {
@@ -98,24 +115,24 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
 
   app.get("/auth/google/callback", async (request, reply) => {
     // The person pressed Cancel on Google's screen: Google comes back with ?error=access_denied.
-    if (callbackQuerySchema.safeParse(request.query).data?.error === "access_denied") {
-      return fail(reply, "access_denied");
+    if (callbackQuerySchema.safeParse(request.query).data?.error === SIGN_IN_ERROR.ACCESS_DENIED) {
+      return fail(reply, SIGN_IN_ERROR.ACCESS_DENIED);
     }
     let profile;
     try {
       profile = await google.fetchProfile(request, reply);
     } catch (err) {
       request.log.warn({ errName: (err as Error).name }, "Google sign-in failed");
-      return fail(reply, "oauth_failed");
+      return fail(reply, SIGN_IN_ERROR.OAUTH_FAILED);
     }
     // Only trust the email when Google says it is verified.
-    if (!profile.emailVerified) return fail(reply, "unverified_email");
+    if (!profile.emailVerified) return fail(reply, SIGN_IN_ERROR.UNVERIFIED_EMAIL);
 
     const email = normalizeEmail(profile.email);
     const user = await store.findUser({ googleId: profile.id, email });
     // Unknown people, and an email already linked to another Google account, are not let in.
-    if (!user || (user.googleId && user.googleId !== profile.id)) return fail(reply, "not_invited");
-    if (user.deactivatedAt) return fail(reply, "deactivated");
+    if (!user || (user.googleId && user.googleId !== profile.id)) return fail(reply, SIGN_IN_ERROR.NOT_INVITED);
+    if (user.deactivatedAt) return fail(reply, SIGN_IN_ERROR.DEACTIVATED);
 
     await store.updateProfile(user.id, {
       googleId: profile.id,
@@ -132,12 +149,12 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     const id = sessionIdFrom(request);
     if (id) await store.deleteSession(id);
     clearSessionCookie(reply);
-    return reply.code(204).send();
+    return reply.code(HTTP_STATUS.NO_CONTENT).send();
   });
 
   app.get("/api/me", async (request, reply): Promise<MeResponse | ApiError> => {
     const user = await currentUser(request, reply);
-    if (!user) return reply.code(401).send({ error: "unauthorized" });
+    if (!user) return reply.code(HTTP_STATUS.UNAUTHORIZED).send({ error: API_ERROR.UNAUTHORIZED });
     return {
       id: user.id,
       email: user.email,
