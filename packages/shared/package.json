@@ -16,12 +16,14 @@
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --passWithNoTests --coverage"
   },
   "dependencies": {
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
