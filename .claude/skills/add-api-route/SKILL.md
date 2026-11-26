@@ -29,5 +29,5 @@ Follow `.claude/rules/backend.md` and `.claude/rules/security.md`.
 - Duplicate a schema in web or backend.
 - Skip the role matrix tests.
 
-Auth code does not exist yet: until it does, write the permission check against the
-planned interface and note it in the PR description.
+Auth exists (sign-in, session, `GET /api/me`, invitation gate in `routes/auth.ts`): reuse its
+`currentUser` pattern for the permission check.

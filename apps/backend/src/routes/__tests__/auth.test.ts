@@ -34,6 +34,28 @@ function makeStore(users: StoredUser[]) {
       Object.assign(user, profile);
       return user;
     },
+    async hasPendingInvitation() {
+      return false;
+    },
+    async hasActiveMembership() {
+      return false;
+    },
+    async admit(input) {
+      const existing = users.find((u) => u.id === input.userId);
+      if (existing) {
+        Object.assign(existing, { googleId: input.googleId, name: input.name, avatarUrl: input.avatarUrl });
+        return existing;
+      }
+      const created = makeUser({
+        email: input.email,
+        name: input.name,
+        avatarUrl: input.avatarUrl,
+        googleId: input.googleId,
+        isSuperAdmin: input.isFirstSuperAdmin,
+      });
+      users.push(created);
+      return created;
+    },
     async createSession(userId, expiresAt) {
       const id = randomUUID();
       sessions.set(id, { id, userId, expiresAt, lastUsedAt: null });
@@ -91,6 +113,7 @@ function setup(
     crossSite?: boolean;
     now?: () => Date;
     trustProxy?: boolean;
+    superAdminEmail?: string | undefined;
   } = {},
 ) {
   const users = opts.users ?? [makeUser()];
@@ -102,6 +125,7 @@ function setup(
       store,
       google: fakeGoogle(opts.google ?? profile()),
       crossSite: opts.crossSite ?? true,
+      superAdminEmail: "superAdminEmail" in opts ? opts.superAdminEmail : "admin@example.com",
       now: opts.now ?? (() => START),
     },
   });
@@ -166,7 +190,11 @@ describe("GET /auth/google/callback", () => {
 
   type Setup = Parameters<typeof setup>[0];
   const refusals: Array<[string, Setup, string]> = [
-    ["an unknown email", { users: [makeUser({ email: "other@example.com" })] }, "not_invited"],
+    [
+      "an unknown email",
+      { users: [makeUser({ email: "other@example.com" })], superAdminEmail: undefined },
+      "not_invited",
+    ],
     ["an unverified email", { google: profile({ emailVerified: false }) }, "unverified_email"],
     ["a deactivated person", { users: [makeUser({ deactivatedAt: new Date() })] }, "deactivated"],
     ["a failed Google exchange (bad state, bad code)", { google: new Error("bad state") }, "oauth_failed"],
@@ -182,7 +210,7 @@ describe("GET /auth/google/callback", () => {
   });
 
   it("never puts the email in the redirect", async () => {
-    const { app } = setup({ users: [] });
+    const { app } = setup({ users: [], superAdminEmail: undefined });
     const res = await app.inject({ method: "GET", url: "/auth/google/callback?code=x" });
     expect(String(res.headers.location)).not.toMatch(/example\.com\/?$|@|admin/i);
   });

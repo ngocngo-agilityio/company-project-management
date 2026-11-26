@@ -18,6 +18,7 @@ import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { SESSION_TTL_MS } from "../constants/index.js";
 import type { GoogleAuth } from "../services/google.js";
+import { evaluateGate } from "../services/invitation-gate.js";
 import type { AuthStore, StoredUser } from "../types/index.js";
 
 /** Do not write to the database on every request: refresh `lastUsedAt` at most this often. */
@@ -38,6 +39,8 @@ export interface AuthOptions {
   webOrigin?: string | undefined;
   /** true: cookie is Secure + SameSite=None (web and API on different addresses). false: Lax, not Secure. */
   crossSite: boolean;
+  /** Lowercase email of the first Super Admin (SUPER_ADMIN_EMAIL). Unset: nobody gets in on that rule. */
+  superAdminEmail?: string | undefined;
   now?: () => Date;
 }
 
@@ -134,17 +137,31 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
 
     const email = normalizeEmail(profile.email);
     const user = await store.findUser({ googleId: profile.id, email });
-    // Unknown people, and an email already linked to another Google account, are not let in.
-    if (!user || (user.googleId && user.googleId !== profile.id)) return fail(reply, SIGN_IN_ERROR.NOT_INVITED);
-    if (user.deactivatedAt) return fail(reply, SIGN_IN_ERROR.DEACTIVATED);
-
-    await store.updateProfile(user.id, {
+    const at = now();
+    const decision = await evaluateGate({
+      store,
+      user,
       googleId: profile.id,
-      name: profile.name?.trim() || user.name,
-      avatarUrl: profile.avatarUrl ?? null,
+      email,
+      superAdminEmail: opts.superAdminEmail,
+      now: at,
     });
-    const expiresAt = new Date(now().getTime() + SESSION_TTL_MS);
-    const session = await store.createSession(user.id, expiresAt);
+    if (!decision.allowed) return fail(reply, decision.code);
+
+    // Accept invitations, create the person and the memberships in one transaction. No session before it.
+    const admitted = await store.admit({
+      userId: user?.id ?? null,
+      email,
+      googleId: profile.id,
+      name: profile.name?.trim() || user?.name || email.split("@")[0]!,
+      avatarUrl: profile.avatarUrl ?? null,
+      isFirstSuperAdmin: decision.isFirstSuperAdmin,
+      now: at,
+    });
+    // Lost a race (the invitation was used a moment ago): same answer as for an uninvited person.
+    if (!admitted) return fail(reply, SIGN_IN_ERROR.NOT_INVITED);
+    const expiresAt = new Date(at.getTime() + SESSION_TTL_MS);
+    const session = await store.createSession(admitted.id, expiresAt);
     setSessionCookie(reply, session.id, expiresAt);
     return reply.redirect(`${webBase}${WEB_ROUTES.HOME}`);
   });
