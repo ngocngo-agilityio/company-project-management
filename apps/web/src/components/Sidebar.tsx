@@ -1,7 +1,9 @@
 import { WEB_ROUTES } from "@board/shared";
 import { Avatar, Button, Dialog, DialogContent, DialogTrigger, Logo } from "@board/ui";
-import { FolderKanban, SquareCheckBig, Users, type LucideIcon } from "lucide-react";
+import { FolderKanban, LogOut, SquareCheckBig, Users, type LucideIcon } from "lucide-react";
 import { NavLink } from "react-router";
+import { useLogout, useMe } from "../api";
+import { SIGN_OUT_FAILED_MESSAGE } from "../constants";
 import { ApiStatus } from "./ApiStatus";
 
 const NAV_ITEMS: { to: string; label: string; icon: LucideIcon }[] = [
@@ -15,6 +17,8 @@ const navLinkStyles =
 
 /** Sidebar content. Rendered fixed on desktop and inside the drawer under 900px. */
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { data: me } = useMe();
+  const logout = useLogout();
   return (
     <div className="flex h-full flex-col gap-4 p-4">
       <div className="flex items-center gap-2 px-2 font-display text-[17px]/6 font-bold">
@@ -40,14 +44,28 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </DialogTrigger>
           <DialogContent title="Company Board" description="Internal app to manage company projects." />
         </Dialog>
-        {/* Placeholder until sign-in exists: the design shows the signed-in person here. */}
         <div className="flex w-full items-center gap-2.5 rounded-12 border border-line bg-surface-2 p-2.5">
-          <Avatar name="Guest" size={34} />
+          <Avatar name={me?.name ?? "Guest"} size={34} />
           <div className="min-w-0">
-            <strong className="block truncate text-button">Guest</strong>
-            <p className="truncate text-body-small text-ink-muted">Not signed in</p>
+            <strong className="block truncate text-button">{me?.name ?? "Guest"}</strong>
+            <p className="truncate text-body-small text-ink-muted">{me?.email ?? "Not signed in"}</p>
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="min-h-11 w-full min-[900px]:min-h-9"
+          disabled={logout.isPending}
+          onClick={() => logout.mutate()}
+        >
+          <LogOut size={16} strokeWidth={1.8} aria-hidden />
+          Sign out
+        </Button>
+        {logout.isError && (
+          <p role="alert" className="text-body-small text-danger">
+            {SIGN_OUT_FAILED_MESSAGE}
+          </p>
+        )}
       </div>
     </div>
   );

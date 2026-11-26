@@ -217,6 +217,12 @@ describe("GET /auth/google/callback", () => {
 });
 
 describe("GET /api/me", () => {
+  it("is not cached by the browser, so Back cannot show an old answer", async () => {
+    const { app } = setup();
+    const res = await app.inject({ method: "GET", url: "/api/me" });
+    expect(res.headers["cache-control"]).toBe("no-store");
+  });
+
   async function signIn(app: ReturnType<typeof setup>["app"]) {
     const res = await app.inject({ method: "GET", url: "/auth/google/callback?code=x" });
     return cookieOf(res)!.value;
@@ -306,6 +312,34 @@ describe("POST /auth/logout", () => {
     const { app } = setup();
     const res = await app.inject({ method: "POST", url: "/auth/logout", headers: { origin: WEB } });
     expect(res.statusCode).toBe(204);
+  });
+
+  // A browser only drops a cookie when Path, Secure and SameSite match the ones it was set with.
+  it.each([true, false])("clears the cookie with the attributes it was set with (crossSite: %s)", async (crossSite) => {
+    const { app } = setup({ crossSite });
+    const signed = await app.inject({ method: "GET", url: "/auth/google/callback?code=x" });
+    const setHeader = String(signed.headers["set-cookie"]);
+    const sid = cookieOf(signed)!.value;
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/auth/logout",
+      headers: { origin: WEB },
+      cookies: { [SESSION_COOKIE_NAME]: sid },
+    });
+    const clearHeader = String(res.headers["set-cookie"]);
+    expect(clearHeader).toMatch(/Path=\//i);
+    expect(clearHeader).toMatch(/Expires=Thu, 01 Jan 1970/i);
+    expect(clearHeader).toMatch(/HttpOnly/i);
+    expect(/Secure/i.test(clearHeader)).toBe(/Secure/i.test(setHeader));
+    expect(clearHeader).toMatch(new RegExp(`SameSite=${crossSite ? "None" : "Lax"}`, "i"));
+    expect(/Domain=/i.test(clearHeader)).toBe(/Domain=/i.test(setHeader));
+  });
+
+  it("is not cached by the browser", async () => {
+    const { app } = setup();
+    const res = await app.inject({ method: "POST", url: "/auth/logout", headers: { origin: WEB } });
+    expect(res.headers["cache-control"]).toBe("no-store");
   });
 });
 

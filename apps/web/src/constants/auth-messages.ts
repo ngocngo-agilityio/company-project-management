@@ -34,3 +34,6 @@ export const SESSION_CHECK_MESSAGES = {
   ALERT_TEXT: "The server did not answer. Check your connection and try again.",
   HINT_WAKING_UP: "Waking up the server, this can take up to a minute.",
 } as const;
+
+/** Sidebar: the sign-out request failed, so the person is still signed in. */
+export const SIGN_OUT_FAILED_MESSAGE = "We could not sign you out. Check your connection and try again.";

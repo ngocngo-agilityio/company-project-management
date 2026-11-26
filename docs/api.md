@@ -1,6 +1,6 @@
 # API
 
-**Proposed design, nothing built yet.** From the [System Design](https://claude.ai/artifact/QJwARPSBjU8pdppsMZSpS9) page. Keep routes and permissions in line with [permissions.md](permissions.md). Update this file in the same PR that adds or changes a route.
+**Proposed design.** Built so far: Google sign-in, `GET /api/me`, `POST /auth/logout`, `GET /health` and the public pages; the rest is still a plan. From the [System Design](https://claude.ai/artifact/QJwARPSBjU8pdppsMZSpS9) page. Keep routes and permissions in line with [permissions.md](permissions.md). Update this file in the same PR that adds or changes a route.
 
 ## Conventions
 
@@ -13,7 +13,7 @@
 - Cookie flags depend on `COOKIE_CROSS_SITE`. `1` (Render: web and API on different addresses): `Secure; SameSite=None`. `0` (local, one origin through the Vite proxy): `SameSite=Lax`, not Secure.
 - Risk: with two addresses the cookie is third party. Safari and strict browser settings may block it, and sign-in then looks like it works but `/api/me` answers 401. Fix: serve web and API from one address (see Technical Stack).
 - Sign-in (`GET /auth/google` then `/auth/google/callback`): Google scopes `openid email profile`, `state` and PKCE (S256). The email is trusted only when Google says it is verified. Invitation gate (S1-AUTH-02): the email is lowercased, then a person who is Inactive (`deactivated_at` set) is refused first. Otherwise only these get a session: the first Super Admin (`SUPER_ADMIN_EMAIL`; the `user` row is created at first sign-in), an email with a Pending invitation that has not expired, or a member of at least one project that is not archived. Every unexpired Pending invitation of the email is then set to Accepted and its membership created, in one database transaction; the session is created only after it. An email already linked to another Google account is refused. Otherwise the browser goes to `WEB_ORIGIN/login?error=<code>` with `not_invited`, `unverified_email`, `deactivated`, `access_denied` (the person pressed Cancel on Google), `rate_limited` (too many attempts, see below) or `oauth_failed` (any other failure) (no personal data in the URL). Success goes to `WEB_ORIGIN/`.
-- `GET /api/me` answers `{ id, email, name, avatarUrl, isSuperAdmin }`, or 401 `{ error: "unauthorized" }`. `POST /auth/logout` deletes the row, clears the cookie and answers 204.
+- `GET /api/me` answers `{ id, email, name, avatarUrl, isSuperAdmin }`, or 401 `{ error: "unauthorized" }`. `POST /auth/logout` (S1-SESS-01) deletes the row, clears the cookie with the same attributes it was set with and answers 204, also when there is no session. The `/auth/*` and `/api/me` answers carry `Cache-Control: no-store`, so Back cannot show an old signed-in answer. The web app clears its cache and goes to `/login` (replacing the history entry) on sign-out, and on any 401.
 - `/auth/*` is limited to 10 requests a minute per address (429).
 - Who: **S** signed in, **A** anyone, **AM** any member of the project, **M+** Member or above, **O+** Owner or Super Admin, **SA** Super Admin.
 

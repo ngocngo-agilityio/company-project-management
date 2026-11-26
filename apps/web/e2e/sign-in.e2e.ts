@@ -68,11 +68,16 @@ test("an uninvited email sees the refusal card and can go back", async ({ page }
   await expect(page.getByRole("link", { name: "Continue with Google" })).toBeVisible();
 });
 
-test("a signed-in person lands on Projects and nothing is kept in browser storage", async ({ page }) => {
+test("a signed-in person lands on Projects and only the session hint is kept in browser storage", async ({ page }) => {
   await open(page, "/login", { signedIn: true });
   await expect(page).toHaveURL(/\/projects$/);
   await expect(heading(page, "Projects")).toBeVisible();
-  expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
+  // Only a "1" flag, never the person or a token (same rule as the unit test in auth-routes.test.tsx).
+  const stored = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
+  expect(Object.keys(stored.local)).toEqual(["board.sessionHint"]);
+  expect(stored.local["board.sessionHint"]).toBe("1");
+  expect(Object.keys(stored.session)).toHaveLength(0);
+  expect(JSON.stringify(stored)).not.toContain(me.email);
 });
 
 for (const [name, size] of [
@@ -91,3 +96,25 @@ for (const [name, size] of [
     await page.screenshot({ path: testInfo.outputPath(`sign-in-${name}.png`), fullPage: true });
   });
 }
+
+test("Sign out goes to /login and Back does not show private pages", async ({ page }) => {
+  let signedIn = true;
+  await page.route("**/api/me", (r) =>
+    signedIn ? r.fulfill({ json: me }) : r.fulfill({ status: 401, json: { error: "unauthorized" } }),
+  );
+  await page.route("**/health", (r) => r.fulfill({ json: { ok: true } }));
+  await page.route("**/auth/logout", (r) => {
+    signedIn = false;
+    return r.fulfill({ status: 204 });
+  });
+  await page.goto("/projects");
+  await expect(heading(page, "Projects")).toBeVisible();
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(heading(page, "Sign in to Company Board")).toBeVisible();
+
+  await page.goBack();
+  await expect(heading(page, "Projects")).toHaveCount(0);
+  await expect(page.getByText(me.email)).toHaveCount(0);
+});
