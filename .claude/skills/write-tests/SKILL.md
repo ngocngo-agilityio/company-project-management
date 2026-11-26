@@ -14,7 +14,8 @@ Follow `.claude/rules/testing.md`.
    - Backend route: Vitest with `buildApp()` and `app.inject()`.
    - React component or screen: Vitest with jsdom and Testing Library.
    - A user flow across web and backend: Playwright (see below).
-2. Put the file next to the code as `<unit>.test.ts(x)`. Run it:
+2. Put the file in the `__tests__/` folder beside the code as `<unit>.test.ts(x)`
+   (see `.claude/rules/structure.md`). Run it:
    ```bash
    pnpm --filter @board/backend test
    pnpm --filter @board/web test
@@ -30,6 +31,6 @@ Follow `.claude/rules/testing.md`.
 ## Playwright (not installed yet)
 
 When the first e2e story arrives, add Playwright to the `catalog:`, put specs in
-`apps/web/e2e/`, and update this skill and `docs/technical-stack.md`. Run main flows at phone,
+`apps/web/e2e/` as `<flow>.e2e.ts` (exclude `e2e/**` in the web Vitest config), and update this skill and `docs/technical-stack.md`. Run main flows at phone,
 tablet and computer sizes. Google sign-in cannot run in CI: use a test-only login route
 behind `E2E=1`, and add a check that it is off on Render.

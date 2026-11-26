@@ -7,7 +7,7 @@ Internal app to manage company projects. pnpm + Turborepo monorepo.
 | `apps/backend` (`@board/backend`)   | Fastify, Prisma 7, zod                          |
 | `apps/web` (`@board/web`)           | React 19, Vite, Tailwind 4, TanStack Query      |
 | `packages/shared` (`@board/shared`) | zod schemas and types shared by web and backend |
-| `packages/ui` (`@board/ui`)         | Shared UI components (empty for now)            |
+| `packages/ui` (`@board/ui`)         | Shared UI components and Storybook              |
 
 ## Read first
 
