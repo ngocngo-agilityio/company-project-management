@@ -23,6 +23,18 @@ function storybookProject(theme: "light" | "dark") {
 export default defineConfig({
   test: {
     passWithNoTests: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/**/__tests__/**",
+        "src/**/*.stories.tsx",
+        "src/**/test-setup.ts",
+        "src/generated/**",
+        "src/**/index.ts",
+      ],
+    },
     projects: [
       {
         extends: true,

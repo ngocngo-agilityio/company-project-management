@@ -26,6 +26,7 @@ cp .env.example .env      # then fill real values locally
 pnpm dev                  # web http://localhost:5173, backend http://127.0.0.1:3000
 pnpm preview              # build, then serve production output (web :4173, backend :3000)
 pnpm lint && pnpm typecheck && pnpm test
+pnpm test:coverage        # unit-test coverage per package (report in <package>/coverage)
 pnpm format               # prettier
 ```
 
