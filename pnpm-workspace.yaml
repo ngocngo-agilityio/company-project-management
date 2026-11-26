@@ -59,6 +59,7 @@ catalog:
   "@vitest/browser": 5.1.1
   "@vitest/browser-playwright": 5.1.1
   playwright: 1.65.1
+  "@playwright/test": 1.65.1
   # shared
   zod: 4.6.7
   # backend

@@ -28,9 +28,9 @@ Follow `.claude/rules/testing.md`.
 6. Never use real secrets or the real Supabase database in tests.
 7. Run `pnpm test` for the whole repo before finishing. Run `pnpm test:coverage` to check that the new code is exercised.
 
-## Playwright (not installed yet)
+## Playwright
 
-When the first e2e story arrives, add Playwright to the `catalog:`, put specs in
-`apps/web/e2e/` as `<flow>.e2e.ts` (exclude `e2e/**` in the web Vitest config), and update this skill and `docs/technical-stack.md`. Run main flows at phone,
+Installed in `apps/web` (`pnpm --filter @board/web test:e2e`). Specs live in
+`apps/web/e2e/` as `<flow>.e2e.ts`; see `sign-in.e2e.ts` for the pattern (mock the API with `page.route`). Run main flows at phone,
 tablet and computer sizes. Google sign-in cannot run in CI: use a test-only login route
 behind `E2E=1`, and add a check that it is off on Render.

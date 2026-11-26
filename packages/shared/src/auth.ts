@@ -14,7 +14,13 @@ export const meResponseSchema = z.object({
 export type MeResponse = z.infer<typeof meResponseSchema>;
 
 /** Codes the API puts in `WEB_ORIGIN/login?error=<code>` when sign-in is refused. No personal data. */
-export const signInErrorSchema = z.enum(["not_invited", "unverified_email", "deactivated", "oauth_failed"]);
+export const signInErrorSchema = z.enum([
+  "not_invited",
+  "unverified_email",
+  "deactivated",
+  "oauth_failed",
+  "access_denied",
+]);
 export type SignInError = z.infer<typeof signInErrorSchema>;
 
 /** Body of an error answer such as 401. */
