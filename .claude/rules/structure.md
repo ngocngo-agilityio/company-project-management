@@ -40,10 +40,13 @@ Rule of thumb: a file that exports a component or a hook is named after its expo
   `app.ts`, `env.ts`, `server.ts`, `seed.ts` stay in `src/`. Zod schemas come from `@board/shared`.
 - `packages/ui/src/components/<Name>/`: `<Name>.tsx`, `<Name>.stories.tsx`, `__tests__/<Name>.test.tsx`.
   Shared helpers in `lib/`.
-- `packages/shared/src`: one file per topic, exported from `src/index.ts`. `constants/` holds constant values, `utils/` pure helpers shared by web and backend, `types/` zod schemas with their inferred types. `index.ts` only re-exports: define nothing in it.
+- `packages/shared/src`: one file per topic, exported through the folder `index.ts` and `src/index.ts`. `constants/` holds constant values, `utils/` pure helpers shared by web and backend, `types/` zod schemas with their inferred types. `index.ts` only re-exports: define nothing in it.
 - `utils/` and `types/` (web, backend, shared) are created early: while one is empty it holds a `.gitkeep`, deleted when the first file arrives. Every other folder is still created with its first file.
 
 ## Barrels
 
-No `index.ts` per folder. The only barrels are `packages/ui/src/index.ts` and `packages/shared/src/index.ts`.
-Inside an app, import the file directly (`components/Sidebar`).
+- `index.ts` in `components/`, `constants/`, `types/`, `utils/` and `api/` (web), in `constants/`, `types/` and `utils/` (backend), and in `constants/`, `types/` and `utils/` (shared): `export * from "./<file>"` for each file. Add a line when a file arrives. An empty folder (only `.gitkeep`) has no `index.ts` yet.
+- Outside a folder, import from the folder (`../constants`), never from a file inside it. Backend keeps the `.js` suffix (`../constants/index.js`).
+- Inside a folder, import siblings by file (`./common-messages`), never through the folder's own `index.ts`. Tests import the file they test.
+- No `index.ts` in `pages/`, `routes/`, `services/`, `hooks/` or `packages/ui/src/components/<Name>/`.
+- Package barrels: `packages/ui/src/index.ts` and `packages/shared/src/index.ts` list public names explicitly.

@@ -2,7 +2,7 @@ import { Button, Dialog, DialogTrigger, DrawerContent } from "@board/ui";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Outlet, useMatches } from "react-router";
-import type { RouteHandle } from "../types/route-handle";
+import type { RouteHandle } from "../types";
 import { SidebarContent } from "./Sidebar";
 
 function isRouteHandle(handle: unknown): handle is RouteHandle {

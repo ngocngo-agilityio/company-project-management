@@ -1,4 +1,3 @@
 export * from "./constants/index.js";
-export { normalizeEmail } from "./utils/email.js";
-export { meResponseSchema, type MeResponse } from "./types/auth.js";
-export { healthResponseSchema, type HealthResponse } from "./types/health.js";
+export { normalizeEmail } from "./utils/index.js";
+export { meResponseSchema, healthResponseSchema, type MeResponse, type HealthResponse } from "./types/index.js";

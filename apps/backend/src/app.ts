@@ -1,7 +1,7 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import { API_ROUTES, type HealthResponse } from "@board/shared";
-import { registerOriginCheck } from "./utils/origin.js";
+import { registerOriginCheck } from "./utils/index.js";
 import { authPlugin, type AuthOptions } from "./routes/auth.js";
 import { aboutPage, privacyPage } from "./routes/pages.js";
 

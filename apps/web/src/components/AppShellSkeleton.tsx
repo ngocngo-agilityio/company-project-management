@@ -1,7 +1,7 @@
 import { Skeleton } from "@board/ui";
 import { useEffect, useState } from "react";
-import { SESSION_CHECK_MESSAGES } from "../constants/auth-messages";
-import { WAKE_UP_HINT_DELAY_MS } from "../constants/timing";
+import { SESSION_CHECK_MESSAGES } from "../constants";
+import { WAKE_UP_HINT_DELAY_MS } from "../constants";
 
 /** App-shaped placeholder (sidebar, top bar, content) shown while we check the session. */
 export function AppShellSkeleton() {

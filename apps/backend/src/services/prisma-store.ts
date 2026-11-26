@@ -1,5 +1,5 @@
 import type { PrismaClient } from "../generated/prisma/client.js";
-import type { AuthStore, StoredUser } from "../types/auth-store.js";
+import type { AuthStore, StoredUser } from "../types/index.js";
 
 const userSelect = {
   id: true,

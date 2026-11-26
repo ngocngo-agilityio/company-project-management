@@ -1,6 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
-import { assertLocalDatabase } from "../src/utils/db-guard.js";
+import { assertLocalDatabase } from "../src/utils/index.js";
 import { loadEnv } from "../src/env.js";
 import { seedCompanySetting, seedSuperAdmin } from "../src/seed.js";
 

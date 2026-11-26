@@ -6,8 +6,8 @@ import {
   type HealthResponse,
   type MeResponse,
 } from "@board/shared";
-import { API_URL } from "../constants/api";
-import { WAKE_UP_TIMEOUT_MS } from "../constants/timing";
+import { API_URL } from "../constants";
+import { WAKE_UP_TIMEOUT_MS } from "../constants";
 
 export async function fetchHealth(): Promise<HealthResponse> {
   const res = await fetch(`${API_URL}${API_ROUTES.HEALTH}`, { signal: AbortSignal.timeout(WAKE_UP_TIMEOUT_MS) });

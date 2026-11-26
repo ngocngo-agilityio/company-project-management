@@ -1,6 +1,6 @@
 import { normalizeEmail } from "@board/shared";
 import { z } from "zod";
-import { DEFAULT_COMPANY_TIMEZONE } from "./constants/company.js";
+import { DEFAULT_COMPANY_TIMEZONE } from "./constants/index.js";
 
 // Empty strings (e.g. `PORT=` copied from .env.example) are treated as unset.
 const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);

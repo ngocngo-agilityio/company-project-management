@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { WAKE_UP_HINT_DELAY_MS } from "../constants/timing";
+import { WAKE_UP_HINT_DELAY_MS } from "../constants";
 import { appRoutes } from "../routes";
 
 const me = {

@@ -1,8 +1,8 @@
 import { WEB_ROUTES } from "@board/shared";
 import { Navigate, type RouteObject } from "react-router";
-import { AppLayout } from "./components/AppLayout";
-import type { RouteHandle } from "./types/route-handle";
-import { RequireAuth } from "./components/RequireAuth";
+import { AppLayout } from "./components";
+import type { RouteHandle } from "./types";
+import { RequireAuth } from "./components";
 import { SignIn } from "./pages/SignIn";
 
 function Placeholder({ text }: { text: string }) {

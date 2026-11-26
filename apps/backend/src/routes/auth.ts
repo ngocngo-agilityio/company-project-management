@@ -16,9 +16,9 @@ import {
 } from "@board/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { SESSION_TTL_MS } from "../constants/session.js";
+import { SESSION_TTL_MS } from "../constants/index.js";
 import type { GoogleAuth } from "../services/google.js";
-import type { AuthStore, StoredUser } from "../types/auth-store.js";
+import type { AuthStore, StoredUser } from "../types/index.js";
 
 /** Do not write to the database on every request: refresh `lastUsedAt` at most this often. */
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
