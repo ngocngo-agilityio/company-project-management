@@ -32,7 +32,11 @@ function renderAt(path: string) {
   return router;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  localStorage.clear();
+  sessionStorage.clear();
+});
 
 describe("Sign-in screen", () => {
   it("shows the logo text, one Google button and no error by default", async () => {
@@ -126,6 +130,82 @@ describe("Sign-in screen", () => {
     await userEvent.click(await screen.findByRole("link", { name: "Back to sign in" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Sign in to Company Board" })).toBeInTheDocument();
     expect(router.state.location.search).toBe("");
+  });
+
+  it("focuses the title of the refusal card and announces it as an alert", async () => {
+    mockSession(false);
+    renderAt("/login?error=not_invited");
+    const title = await screen.findByRole("heading", { level: 1, name: "You have not been invited" });
+    expect(title).toHaveFocus();
+    expect(screen.getByRole("alert")).toContainElement(title);
+  });
+
+  it("keeps ?error= in the address after showing the refusal card", async () => {
+    mockSession(false);
+    const router = renderAt("/login?error=not_invited");
+    await screen.findByRole("heading", { level: 1, name: "You have not been invited" });
+    expect(router.state.location.search).toBe("?error=not_invited");
+  });
+
+  it("shows the app skeleton, not the card, while checking when this browser had a session", () => {
+    localStorage.setItem("board.sessionHint", "1");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    renderAt("/login");
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1, name: "Sign in to Company Board" })).not.toBeInTheDocument();
+  });
+
+  it("still shows the refusal card at once when the hint is set but the address has an error", () => {
+    localStorage.setItem("board.sessionHint", "1");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    renderAt("/login?error=not_invited");
+    expect(screen.getByRole("heading", { level: 1, name: "You have not been invited" })).toBeInTheDocument();
+  });
+
+  it("remembers a session after /me answers and forgets it after a 401", async () => {
+    mockSession(true);
+    renderAt("/login");
+    await screen.findByRole("heading", { level: 1, name: "Projects" });
+    expect(localStorage.getItem("board.sessionHint")).toBe("1");
+  });
+
+  it("clears the hint when /me answers 401", async () => {
+    localStorage.setItem("board.sessionHint", "1");
+    mockSession(false);
+    renderAt("/login");
+    expect(await screen.findByRole("heading", { level: 1, name: "Sign in to Company Board" })).toBeInTheDocument();
+    expect(localStorage.getItem("board.sessionHint")).toBeNull();
+  });
+
+  it("remembers the private page asked for while signed out", async () => {
+    mockSession(false);
+    const router = renderAt("/people?tab=all");
+    expect(await screen.findByRole("heading", { level: 1, name: "Sign in to Company Board" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(sessionStorage.getItem("board.returnTo")).toBe("/people?tab=all");
+  });
+
+  it("brings a signed-in person back to the page they asked for", async () => {
+    sessionStorage.setItem("board.returnTo", "/people");
+    mockSession(true);
+    const router = renderAt("/login");
+    expect(await screen.findByRole("heading", { level: 1, name: "People" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/people");
+    expect(sessionStorage.getItem("board.returnTo")).toBeNull();
+  });
+
+  it("ignores a remembered address that leaves the app", async () => {
+    sessionStorage.setItem("board.returnTo", "//evil.example.com");
+    mockSession(true);
+    const router = renderAt("/login");
+    expect(await screen.findByRole("heading", { level: 1, name: "Projects" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/projects");
   });
 
   it("sends a signed-in person to Projects", async () => {
