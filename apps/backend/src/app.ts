@@ -1,9 +1,11 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
-import type { HealthResponse } from "@board/shared";
+import { API_ROUTES, type HealthResponse } from "@board/shared";
 import { registerOriginCheck } from "./lib/origin.js";
 import { authPlugin, type AuthOptions } from "./routes/auth.js";
 import { aboutPage, privacyPage } from "./routes/pages.js";
+
+const HTML_CONTENT_TYPE = "text/html; charset=utf-8";
 
 export interface BuildAppOptions {
   logger?: boolean;
@@ -25,11 +27,11 @@ export function buildApp({ logger = false, trustProxy = false, webOrigin, contac
   }
   registerOriginCheck(app, webOrigin);
 
-  app.get("/health", async (): Promise<HealthResponse> => ({ ok: true }));
+  app.get(API_ROUTES.HEALTH, async (): Promise<HealthResponse> => ({ ok: true }));
 
   // Public pages (no sign-in): Google requires a homepage and a privacy policy on the consent screen.
-  app.get("/about", async (_req, reply) => reply.type("text/html; charset=utf-8").send(aboutPage(contactEmail)));
-  app.get("/privacy", async (_req, reply) => reply.type("text/html; charset=utf-8").send(privacyPage(contactEmail)));
+  app.get(API_ROUTES.ABOUT, async (_req, reply) => reply.type(HTML_CONTENT_TYPE).send(aboutPage(contactEmail)));
+  app.get(API_ROUTES.PRIVACY, async (_req, reply) => reply.type(HTML_CONTENT_TYPE).send(privacyPage(contactEmail)));
 
   if (auth) void app.register(authPlugin, { ...auth, webOrigin });
 

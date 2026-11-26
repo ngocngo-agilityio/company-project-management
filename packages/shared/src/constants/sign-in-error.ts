@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 /** Codes the API puts in `WEB_ORIGIN/login?error=<code>` when sign-in is refused. No personal data. */
+/** Name of the query parameter that carries the code on the login URL. */
+export const SIGN_IN_ERROR_PARAM = "error";
+
 export const SIGN_IN_ERROR = {
   NOT_INVITED: "not_invited",
   UNVERIFIED_EMAIL: "unverified_email",
