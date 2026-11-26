@@ -115,12 +115,13 @@ describe("sidebar user card", () => {
   beforeEach(mockSignedIn);
   afterEach(() => vi.unstubAllGlobals());
 
-  it("shows the guest avatar and status in the sidebar only", async () => {
+  it("shows the signed-in person and a Sign out button in the sidebar only", async () => {
     await renderPrivateAt("/projects");
     const [sidebar] = await screen.findAllByRole("navigation", { name: "Main" });
     const card = sidebar!.parentElement!;
-    expect(within(card).getByRole("img", { name: "Guest" })).toBeInTheDocument();
-    expect(within(card).getByText("Not signed in")).toBeInTheDocument();
+    expect(await within(card).findByText(me.email)).toBeInTheDocument();
+    expect(within(card).getByRole("img", { name: me.name })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "Sign out" })).toBeInTheDocument();
     expect(within(screen.getByRole("banner")).queryByRole("img")).not.toBeInTheDocument();
   });
 });

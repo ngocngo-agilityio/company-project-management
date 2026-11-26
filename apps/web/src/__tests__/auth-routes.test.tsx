@@ -84,6 +84,51 @@ describe("route guard", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Projects" })).toBeInTheDocument();
   });
 
+  it("Sign out ends the session, goes to /login and keeps private pages out of Back history", async () => {
+    let signedInNow = true;
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url.endsWith("/auth/logout")) {
+        signedInNow = false;
+        return Promise.resolve(new Response(null, { status: 204 }));
+      }
+      if (url.endsWith("/api/me")) {
+        return Promise.resolve(
+          signedInNow ? Response.json(me) : Response.json({ error: "unauthorized" }, { status: 401 }),
+        );
+      }
+      return Promise.resolve(Response.json({ ok: true }, init));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const router = renderAt("/projects");
+    await screen.findByRole("heading", { level: 1, name: "Projects" });
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Sign out" })[0]!);
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Sign in to Company Board" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(fetchMock).toHaveBeenCalledWith("/auth/logout", { method: "POST", credentials: "include" });
+    expect(localStorage.getItem(SESSION_HINT_STORAGE_KEY)).toBeNull();
+    // `replace`: going back does not return to the private page.
+    await act(() => router.navigate(-1));
+    expect(screen.queryByRole("heading", { level: 1, name: "Projects" })).not.toBeInTheDocument();
+  });
+
+  it("stays signed in and says so when the sign-out request fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) =>
+        url.endsWith("/auth/logout")
+          ? Promise.reject(new Error("offline"))
+          : Promise.resolve(url.endsWith("/api/me") ? Response.json(me) : Response.json({ ok: true })),
+      ),
+    );
+    const router = renderAt("/projects");
+    await screen.findByRole("heading", { level: 1, name: "Projects" });
+    await userEvent.click(screen.getAllByRole("button", { name: "Sign out" })[0]!);
+    expect(await screen.findByRole("alert")).toHaveTextContent("We could not sign you out");
+    expect(router.state.location.pathname).toBe("/projects");
+  });
+
   it("stores no token or personal data in the browser, only the two UX hints", async () => {
     signedIn();
     renderAt("/projects");

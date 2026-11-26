@@ -50,6 +50,10 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   const webBase = opts.webOrigin ? new URL(opts.webOrigin).origin : "";
 
   await app.register(fastifyCookie);
+  // Answers here depend on who is signed in: keep browsers (and Back / bfcache) from storing them.
+  app.addHook("onRequest", async (_request, reply) => {
+    reply.header("Cache-Control", "no-store");
+  });
   // Only the /auth/* routes are limited; /api/me is polled by the web app.
   // Sign-in routes: 10 a minute per address. Logout has its own, separate counter.
   await app.register(fastifyRateLimit, {
