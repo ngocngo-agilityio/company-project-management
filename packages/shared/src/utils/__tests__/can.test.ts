@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACTIONS, ROLES, type Action, type Role } from "../../constants/index.js";
+import { ACTIONS, PERMISSIONS, ROLES, type Action, type Role } from "../../constants/index.js";
 import { can } from "../can.js";
 
 const [SA, OW, ME, OB] = ROLES;
@@ -30,15 +30,63 @@ const EXPECTED: Record<Action, readonly Role[]> = {
   "systemlog:view": [SA],
 };
 
-const CASES = Object.entries(EXPECTED).flatMap(([action, allowed]) =>
-  ROLES.map((role) => ({ action: action as Action, role, expected: allowed.includes(role) })),
-);
+/** One entry per row of the table: the action and what each role is expected to get. */
+const ROWS = (Object.entries(EXPECTED) as Array<[Action, readonly Role[]]>).map(([action, allowed]) => ({
+  action,
+  results: ROLES.map((role) => ({ role, expected: allowed.includes(role) })),
+}));
 
-describe("can", () => {
-  it.each(CASES)("$role / $action -> $expected", ({ role, action, expected }) => {
-    expect(can(role, action)).toBe(expected);
+/**
+ * The table in docs/permissions.md, copied by hand: columns are Super Admin, Owner, Member, Observer.
+ * Marks: "✓" and "all"/"own" mean the role may do it at role level, "-" means refused.
+ * Source of the copy: docs/permissions.md. Change the doc and this fixture together.
+ * `board:view, cards:mine` is one doc row for two keys.
+ */
+const DOC_MATRIX: Record<string, readonly [string, string, string, string]> = {
+  "people:view": ["✓", "-", "-", "-"],
+  "person:deactivate": ["✓", "-", "-", "-"],
+  "superadmin:invite": ["✓", "-", "-", "-"],
+  "project:create": ["✓", "-", "-", "-"],
+  "project:update": ["✓", "-", "-", "-"],
+  "project:archive": ["✓", "-", "-", "-"],
+  "project:view": ["all", "own", "own", "own"],
+  "member:manage": ["✓", "✓", "-", "-"],
+  "member:leave": ["✓", "✓", "✓", "✓"],
+  "board:create": ["✓", "✓", "-", "-"],
+  "list:manage": ["✓", "✓", "-", "-"],
+  "label:manage": ["✓", "✓", "-", "-"],
+  "card:write": ["✓", "✓", "✓", "-"],
+  "card:archive": ["✓", "✓", "✓", "-"],
+  "comment:write": ["✓", "✓", "✓", "-"],
+  "comment:edit-own": ["✓", "✓", "✓", "-"],
+  "comment:delete-any": ["✓", "✓", "-", "-"],
+  "board:view": ["✓", "✓", "✓", "✓"],
+  "cards:mine": ["✓", "✓", "✓", "✓"],
+  "card:delete-archived": ["✓", "✓", "-", "-"],
+  "structure:delete-archived": ["✓", "-", "-", "-"],
+  "systemlog:view": ["✓", "-", "-", "-"],
+};
+
+describe("can: one test per row of the permissions table", () => {
+  describe.each(ROWS)("$action", ({ action, results }) => {
+    it.each(results)("$role -> $expected", ({ role, expected }) => {
+      expect(can(role, action)).toBe(expected);
+    });
+  });
+});
+
+describe("permissions table matches docs/permissions.md", () => {
+  it("has the same actions as the doc", () => {
+    expect(Object.keys(DOC_MATRIX).sort()).toEqual([...ACTIONS].sort());
   });
 
+  it.each(Object.entries(DOC_MATRIX))("%s gives the roles the doc gives", (action, marks) => {
+    const fromDoc = ROLES.filter((_, i) => marks[i] !== "-");
+    expect([...PERMISSIONS[action as Action]].sort()).toEqual([...fromDoc].sort());
+  });
+});
+
+describe("can", () => {
   it("tests every action in the table", () => {
     expect(Object.keys(EXPECTED).sort()).toEqual([...ACTIONS].sort());
   });

@@ -46,6 +46,10 @@ export function createGoogleAuth(config: GoogleConfig): GoogleAuth {
 
   return {
     async register(app) {
+      // The plugin adds the sign-in redirect route itself, so declare its access here.
+      app.addHook("onRoute", (route) => {
+        if (route.url === API_ROUTES.GOOGLE_SIGN_IN) route.config = { ...route.config, access: "public" };
+      });
       await app.register(fastifyOauth2, {
         name: "googleOAuth2",
         scope: ["openid", "email", "profile"],

@@ -3,6 +3,7 @@ import { z } from "zod";
 /** Codes in the `error` field of an API error answer such as 401 or 403. */
 export const API_ERROR = {
   UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
   FORBIDDEN_ORIGIN: "forbidden_origin",
   INTERNAL_ERROR: "internal_error",
 } as const;
