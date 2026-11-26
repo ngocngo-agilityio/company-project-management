@@ -17,7 +17,7 @@ import {
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { GoogleAuth } from "../services/google.js";
-import type { AuthStore, StoredUser } from "../services/store.js";
+import type { AuthStore, StoredUser } from "../types/auth-store.js";
 
 /** A session lasts 7 days from the last time it was used. */
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;

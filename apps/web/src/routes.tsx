@@ -1,6 +1,7 @@
 import { WEB_ROUTES } from "@board/shared";
 import { Navigate, type RouteObject } from "react-router";
-import { AppLayout, type RouteHandle } from "./components/AppLayout";
+import { AppLayout } from "./components/AppLayout";
+import type { RouteHandle } from "./types/route-handle";
 import { RequireAuth } from "./components/RequireAuth";
 import { SignIn } from "./pages/SignIn";
 

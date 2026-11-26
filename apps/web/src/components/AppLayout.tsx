@@ -2,9 +2,8 @@ import { Button, Dialog, DialogTrigger, DrawerContent } from "@board/ui";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Outlet, useMatches } from "react-router";
+import type { RouteHandle } from "../types/route-handle";
 import { SidebarContent } from "./Sidebar";
-
-export type RouteHandle = { title: string };
 
 function isRouteHandle(handle: unknown): handle is RouteHandle {
   return typeof handle === "object" && handle !== null && "title" in handle && typeof handle.title === "string";
