@@ -7,8 +7,7 @@ export const API_ERROR = {
   INTERNAL_ERROR: "internal_error",
 } as const;
 
-export const apiErrorCodeSchema = z.enum(API_ERROR);
-export type ApiErrorCode = z.infer<typeof apiErrorCodeSchema>;
+const apiErrorCodeSchema = z.enum(API_ERROR);
 
 /** Body of an error answer such as 401. */
 export const apiErrorSchema = z.object({ error: apiErrorCodeSchema });
