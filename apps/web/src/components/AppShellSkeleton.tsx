@@ -1,5 +1,6 @@
 import { Skeleton } from "@board/ui";
 import { useEffect, useState } from "react";
+import { SESSION_CHECK_MESSAGES } from "../messages";
 
 /** After this long we tell the person the server may be starting up (free hosting sleeps when idle). */
 export const WAKE_UP_HINT_DELAY_MS = 5_000;
@@ -30,9 +31,7 @@ export function AppShellSkeleton() {
           <Skeleton className="h-8 w-60 max-w-full" />
           <Skeleton className="h-28 w-full" />
           <Skeleton className="h-28 w-full" />
-          {slow ? (
-            <p className="text-body-small text-ink-muted">Waking up the server, this can take up to a minute.</p>
-          ) : null}
+          {slow ? <p className="text-body-small text-ink-muted">{SESSION_CHECK_MESSAGES.HINT_WAKING_UP}</p> : null}
         </div>
       </div>
     </div>

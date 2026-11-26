@@ -56,6 +56,8 @@ const envSchema = z.object({
   COOKIE_CROSS_SITE: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
   // 1 when the API runs behind a proxy (Render): the client address comes from X-Forwarded-For,
   // so the rate limit counts each person apart. 0 (default) locally: the header could be forged.
+  // Contact address shown on the public /about and /privacy pages (Google asks for one). Optional.
+  CONTACT_EMAIL: z.preprocess(emptyToUndefined, z.string().trim().pipe(z.email()).optional()),
   TRUST_PROXY: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
 });
 

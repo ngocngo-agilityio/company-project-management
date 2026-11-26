@@ -26,10 +26,17 @@ describe("public pages", () => {
     await app.close();
   });
 
-  it("the privacy page shows a contact address", async () => {
+  it("the privacy page shows the configured contact address", async () => {
+    const app = buildApp({ contactEmail: "help@example.com" });
+    const res = await app.inject({ method: "GET", url: "/privacy" });
+    expect(res.body).toContain("mailto:help@example.com");
+    await app.close();
+  });
+
+  it("the pages show no mailto link when no contact address is set", async () => {
     const app = buildApp();
     const res = await app.inject({ method: "GET", url: "/privacy" });
-    expect(res.body).toMatch(/mailto:[^"\s]+@[^"\s]+/);
+    expect(res.body).not.toContain("mailto:");
     await app.close();
   });
 });

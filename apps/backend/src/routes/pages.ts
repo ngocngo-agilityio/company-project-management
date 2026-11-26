@@ -1,8 +1,11 @@
+import { APP_NAME } from "@board/shared";
+
 // Public pages Google asks for on the OAuth consent screen (homepage and privacy policy).
 // Kept as strings so `tsc` builds them with the code; the build does not copy .html files.
 
-const APP_NAME = "Company Board";
-const CONTACT_EMAIL = "ngothingocbk99@gmail.com";
+const mailto = (email?: string): string =>
+  email ? `<a href="mailto:${email}">${email}</a>` : "the person who invited you";
+const contact = (email: string | undefined, prefix: string): string => (email ? `${prefix}${mailto(email)}.` : "");
 
 function layout(title: string, body: string): string {
   return `<!doctype html>
@@ -25,17 +28,18 @@ function layout(title: string, body: string): string {
 `;
 }
 
-export function aboutPage(): string {
+/** `contactEmail` comes from the CONTACT_EMAIL variable. Without it the pages show no contact line. */
+export function aboutPage(contactEmail?: string): string {
   return layout(
     "About",
     `<h1>${APP_NAME}</h1>
     <p>${APP_NAME} is an internal tool for managing company projects. Work is organised into projects, boards, lists and cards, so a team can see who does what, by when, and how far along it is.</p>
     <p>Access is by invitation only. People sign in with their Google account, and only invited people can enter.</p>
-    <p>Read the <a href="/privacy">privacy policy</a>. Questions: <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.</p>`,
+    <p>Read the <a href="/privacy">privacy policy</a>.${contact(contactEmail, " Questions: ")}</p>`,
   );
 }
 
-export function privacyPage(): string {
+export function privacyPage(contactEmail?: string): string {
   return layout(
     "Privacy policy",
     `<h1>Privacy policy</h1>
@@ -52,9 +56,9 @@ export function privacyPage(): string {
     <p>Data is stored in a PostgreSQL database hosted by Supabase and served by a service hosted on Render.</p>
 
     <h2>Your choices</h2>
-    <p>To see, correct or delete your data, contact <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>. You can also remove ${APP_NAME}'s access from your Google account settings.</p>
+    <p>To see, correct or delete your data, contact ${mailto(contactEmail)}. You can also remove ${APP_NAME}'s access from your Google account settings.</p>
 
     <h2>Contact</h2>
-    <p><a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></p>`,
+    <p>${mailto(contactEmail)}</p>`,
   );
 }

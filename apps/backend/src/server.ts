@@ -33,6 +33,7 @@ const app = buildApp({
   logger: true,
   trustProxy: env.TRUST_PROXY === "1",
   webOrigin: WEB_ORIGIN,
+  contactEmail: env.CONTACT_EMAIL,
   auth: {
     store: createPrismaAuthStore(prisma),
     google: createGoogleAuth({

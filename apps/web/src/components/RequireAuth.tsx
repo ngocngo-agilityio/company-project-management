@@ -1,6 +1,7 @@
 import { Alert, Button } from "@board/ui";
 import { Navigate, Outlet } from "react-router";
 import { useMe } from "../api/useMe";
+import { SESSION_CHECK_MESSAGES } from "../messages";
 import { AppShellSkeleton } from "./AppShellSkeleton";
 
 /** Guards private routes. Without a session the person goes to /login. This is only UX; the API checks too. */
@@ -12,14 +13,14 @@ export function RequireAuth() {
       <main className="grid min-h-dvh place-items-center bg-bg p-4 text-ink">
         <div className="w-full max-w-110">
           <Alert
-            title="We could not check your session."
+            title={SESSION_CHECK_MESSAGES.ALERT_TITLE}
             action={
               <Button variant="danger" onClick={() => void refetch()}>
                 Try again
               </Button>
             }
           >
-            The server did not answer. Check your connection and try again.
+            {SESSION_CHECK_MESSAGES.ALERT_TEXT}
           </Alert>
         </div>
       </main>
