@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { WAKE_UP_HINT_DELAY_MS } from "../components/AppShellSkeleton";
 import { appRoutes } from "../routes";
 
 const me = {
@@ -42,11 +43,25 @@ describe("route guard", () => {
     expect(router.state.location.pathname).toBe("/login");
   });
 
-  it("shows a waiting message while the session is checked", () => {
+  it("shows an app-shaped placeholder, not bare text, while the session is checked", () => {
     mockMe(() => new Promise(() => {}));
     renderAt("/projects");
-    expect(screen.getByRole("status")).toHaveTextContent("Checking your session…");
+    expect(screen.getByRole("status")).toHaveTextContent("Loading");
+    expect(screen.queryByText("Checking your session…")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Projects" })).not.toBeInTheDocument();
+  });
+
+  it("says the server may be waking up when the check is slow", () => {
+    vi.useFakeTimers();
+    try {
+      mockMe(() => new Promise(() => {}));
+      renderAt("/projects");
+      expect(screen.queryByText(/Waking up the server/)).not.toBeInTheDocument();
+      act(() => void vi.advanceTimersByTime(WAKE_UP_HINT_DELAY_MS));
+      expect(screen.getByText(/Waking up the server/)).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("lets a signed-in person reach Projects", async () => {

@@ -31,6 +31,7 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: DATA
 const crossSite = env.COOKIE_CROSS_SITE === "1";
 const app = buildApp({
   logger: true,
+  trustProxy: env.TRUST_PROXY === "1",
   webOrigin: WEB_ORIGIN,
   auth: {
     store: createPrismaAuthStore(prisma),

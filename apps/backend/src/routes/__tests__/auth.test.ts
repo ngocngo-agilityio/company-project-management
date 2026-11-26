@@ -85,12 +85,19 @@ afterEach(async () => {
 });
 
 function setup(
-  opts: { users?: StoredUser[]; google?: GoogleProfile | Error; crossSite?: boolean; now?: () => Date } = {},
+  opts: {
+    users?: StoredUser[];
+    google?: GoogleProfile | Error;
+    crossSite?: boolean;
+    now?: () => Date;
+    trustProxy?: boolean;
+  } = {},
 ) {
   const users = opts.users ?? [makeUser()];
   const { store, sessions } = makeStore(users);
   const app = buildApp({
     webOrigin: WEB,
+    trustProxy: opts.trustProxy ?? false,
     auth: {
       store,
       google: fakeGoogle(opts.google ?? profile()),
@@ -298,15 +305,50 @@ describe("Origin check", () => {
 });
 
 describe("rate limit", () => {
-  it("limits /auth/* to 10 requests a minute per address", async () => {
+  it("limits /auth/logout to 30 requests a minute per address and keeps the JSON answer", async () => {
     const { app } = setup();
     const codes: number[] = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 31; i++) {
       const res = await app.inject({ method: "POST", url: "/auth/logout", headers: { origin: WEB } });
       codes.push(res.statusCode);
     }
-    expect(codes.slice(0, 10).every((c) => c === 204)).toBe(true);
-    expect(codes[10]).toBe(429);
+    expect(codes.slice(0, 30).every((c) => c === 204)).toBe(true);
+    expect(codes[30]).toBe(429);
+  });
+
+  it("sends /auth/google back to the sign-in screen with rate_limited, not raw JSON", async () => {
+    const { app } = setup();
+    const codes: number[] = [];
+    let last;
+    for (let i = 0; i < 11; i++) {
+      last = await app.inject({ method: "GET", url: "/auth/google/callback?error=access_denied" });
+      codes.push(last.statusCode);
+    }
+    expect(codes.slice(0, 10).every((c) => c === 302)).toBe(true);
+    expect(last!.statusCode).toBe(302);
+    expect(last!.headers.location).toBe(`${WEB}/login?error=rate_limited`);
+  });
+
+  it("counts logout apart from sign-in", async () => {
+    const { app } = setup();
+    for (let i = 0; i < 10; i++) {
+      await app.inject({ method: "GET", url: "/auth/google/callback?error=access_denied" });
+    }
+    const res = await app.inject({ method: "POST", url: "/auth/logout", headers: { origin: WEB } });
+    expect(res.statusCode).toBe(204);
+  });
+
+  it("counts each client address apart when behind a proxy", async () => {
+    const { app } = setup({ trustProxy: true });
+    const get = (ip: string) =>
+      app.inject({
+        method: "GET",
+        url: "/auth/google/callback?error=access_denied",
+        headers: { "x-forwarded-for": ip },
+      });
+    for (let i = 0; i < 10; i++) await get("203.0.113.1");
+    expect((await get("203.0.113.1")).headers.location).toBe(`${WEB}/login?error=rate_limited`);
+    expect((await get("203.0.113.2")).headers.location).toBe(`${WEB}/login?error=access_denied`);
   });
 
   it("does not limit /api/me", async () => {

@@ -27,14 +27,14 @@ Target architecture from the [Technical Stack](https://claude.ai/artifact/HxR9o2
 
 ## Monorepo
 
-| Package           | Holds                                                         | Rule                                      | Status                                               |
-| ----------------- | ------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------- |
-| `apps/web`        | Screens and feature components                                | Talks to the backend only through the API | Done                                                 |
-| `apps/backend`    | Fastify API, sign-in, sessions, permission checks, serves web | Only place that talks to the database     | Done                                                 |
-| `packages/shared` | Zod schemas, roles and permissions, card ordering             | No framework inside                       | Done (health and sign-in schemas)                    |
-| `packages/ui`     | Design tokens and basic components, one story each            | Mirrors the Company Board Design System   | Tokens, 8 components (incl. Alert), one story each   |
-| `packages/db`     | Prisma schema, migrations, client                             | Only `apps/backend` imports it            | Planned. Today Prisma lives in `apps/backend/prisma` |
-| `packages/config` | Shared TypeScript and ESLint settings                         | One place to change the rules             | Planned                                              |
+| Package           | Holds                                                         | Rule                                      | Status                                                       |
+| ----------------- | ------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
+| `apps/web`        | Screens and feature components                                | Talks to the backend only through the API | Done                                                         |
+| `apps/backend`    | Fastify API, sign-in, sessions, permission checks, serves web | Only place that talks to the database     | Done                                                         |
+| `packages/shared` | Zod schemas, roles and permissions, card ordering             | No framework inside                       | Done (health and sign-in schemas)                            |
+| `packages/ui`     | Design tokens and basic components, one story each            | Mirrors the Company Board Design System   | Tokens, 9 components (incl. Alert, Skeleton), one story each |
+| `packages/db`     | Prisma schema, migrations, client                             | Only `apps/backend` imports it            | Planned. Today Prisma lives in `apps/backend/prisma`         |
+| `packages/config` | Shared TypeScript and ESLint settings                         | One place to change the rules             | Planned                                                      |
 
 ## Design tokens
 

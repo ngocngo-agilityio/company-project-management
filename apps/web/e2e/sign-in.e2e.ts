@@ -42,6 +42,25 @@ for (const [code, title] of [
   });
 }
 
+test("?error=rate_limited tells the person to wait, with no Try again", async ({ page }) => {
+  await open(page, "/login?error=rate_limited");
+  await expect(page.getByRole("alert")).toContainText("Too many sign-in attempts.");
+  await expect(page.getByRole("link", { name: "Try again" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Continue with Google" })).toBeVisible();
+});
+
+test("a private route shows a placeholder, not bare text, while the session is slow", async ({ page }) => {
+  await page.route("**/api/me", async (r) => {
+    await new Promise((done) => setTimeout(done, 1500));
+    await r.fulfill({ json: me });
+  });
+  await page.route("**/health", (r) => r.fulfill({ json: { ok: true } }));
+  await page.goto("/projects");
+  await expect(page.getByRole("status")).toContainText("Loading");
+  await expect(page.getByText("Checking your session…")).toHaveCount(0);
+  await expect(heading(page, "Projects")).toBeVisible();
+});
+
 test("an uninvited email sees the refusal card and can go back", async ({ page }) => {
   await open(page, "/login?error=not_invited");
   await expect(heading(page, "You have not been invited")).toBeVisible();
