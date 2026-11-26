@@ -142,12 +142,27 @@ describe("GET /auth/google/callback", () => {
     expect(header).toMatch(/SameSite=Lax/i);
   });
 
+  it("tells a cancelled consent apart from a failed one, without calling Google", async () => {
+    const { app, sessions } = setup({ google: new Error("must not be called") });
+    const res = await app.inject({ method: "GET", url: "/auth/google/callback?error=access_denied&state=y" });
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe(`${WEB}/login?error=access_denied`);
+    expect(cookieOf(res)).toBeUndefined();
+    expect(sessions.size).toBe(0);
+  });
+
+  it("treats any other ?error= from Google as a failure", async () => {
+    const { app } = setup({ google: new Error("no code") });
+    const res = await app.inject({ method: "GET", url: "/auth/google/callback?error=server_error" });
+    expect(res.headers.location).toBe(`${WEB}/login?error=oauth_failed`);
+  });
+
   type Setup = Parameters<typeof setup>[0];
   const refusals: Array<[string, Setup, string]> = [
     ["an unknown email", { users: [makeUser({ email: "other@example.com" })] }, "not_invited"],
     ["an unverified email", { google: profile({ emailVerified: false }) }, "unverified_email"],
     ["a deactivated person", { users: [makeUser({ deactivatedAt: new Date() })] }, "deactivated"],
-    ["a failed Google exchange (bad state, refused consent)", { google: new Error("bad state") }, "oauth_failed"],
+    ["a failed Google exchange (bad state, bad code)", { google: new Error("bad state") }, "oauth_failed"],
     ["an email linked to another Google account", { users: [makeUser({ googleId: "someone-else" })] }, "not_invited"],
   ];
   it.each(refusals)("refuses %s: no session, redirect with %s", async (_label, over, code) => {

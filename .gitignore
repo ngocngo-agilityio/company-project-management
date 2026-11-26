@@ -6,6 +6,8 @@ dist
 .turbo
 *.tsbuildinfo
 coverage
+test-results
+playwright-report
 .DS_Store
 apps/backend/src/generated
 .claude/settings.local.json

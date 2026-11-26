@@ -1,3 +1,4 @@
+export { Alert, type AlertProps } from "./components/Alert/Alert";
 export { Avatar, type AvatarProps } from "./components/Avatar/Avatar";
 export { Badge, type BadgeProps } from "./components/Badge/Badge";
 export { Button, type ButtonProps } from "./components/Button/Button";

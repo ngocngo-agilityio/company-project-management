@@ -11,6 +11,8 @@ export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 /** Do not write to the database on every request: refresh `lastUsedAt` at most this often. */
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 
+const callbackQuerySchema = z.object({ error: z.string().optional() });
+
 export interface AuthOptions {
   store: AuthStore;
   google: GoogleAuth;
@@ -76,6 +78,10 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   }
 
   app.get("/auth/google/callback", async (request, reply) => {
+    // The person pressed Cancel on Google's screen: Google comes back with ?error=access_denied.
+    if (callbackQuerySchema.safeParse(request.query).data?.error === "access_denied") {
+      return fail(reply, "access_denied");
+    }
     let profile;
     try {
       profile = await google.fetchProfile(request, reply);

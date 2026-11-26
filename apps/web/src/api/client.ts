@@ -4,6 +4,9 @@ import { healthResponseSchema, meResponseSchema, type HealthResponse, type MeRes
 // /health, /api and /auth to the backend.
 const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
 
+/** Full-page redirect target that starts Google sign-in. A link, not a fetch: the browser follows the redirects. */
+export const GOOGLE_SIGN_IN_URL = `${API_URL}/auth/google`;
+
 // A sleeping free-plan service needs about a minute to wake up.
 const WAKE_UP_TIMEOUT_MS = 90_000;
 
