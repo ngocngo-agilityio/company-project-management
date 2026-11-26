@@ -4,6 +4,7 @@ import {
   API_ERROR,
   API_ROUTES,
   AUTH_ROUTE_PREFIX,
+  can,
   HTTP_STATUS,
   normalizeEmail,
   SESSION_COOKIE_NAME,
@@ -101,8 +102,18 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     return parsed.success ? parsed.data : null;
   };
 
+  // One lookup per request: the access check and the handler both ask who is signed in.
+  const resolved = new WeakMap<FastifyRequest, StoredUser | null>();
+
   /** The signed-in person, or null (no cookie, unknown, expired or deactivated session). */
   async function currentUser(request: FastifyRequest, reply: FastifyReply): Promise<StoredUser | null> {
+    if (resolved.has(request)) return resolved.get(request)!;
+    const user = await lookupUser(request, reply);
+    resolved.set(request, user);
+    return user;
+  }
+
+  async function lookupUser(request: FastifyRequest, reply: FastifyReply): Promise<StoredUser | null> {
     const id = sessionIdFrom(request);
     if (!id) return null;
     const session = await store.findSession(id);
@@ -124,7 +135,23 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     return session.user;
   }
 
-  app.get(API_ROUTES.GOOGLE_CALLBACK, async (request, reply) => {
+  // Enforces `config.access` for every route in this plugin and below (see `RouteAccess`). Runs before
+  // body and query validation, so an unsigned caller gets 401 or 403, never 400.
+  // `public` passes. Otherwise 401 without a session; for an Action, 403 unless the role may do it.
+  // Only the Super Admin flag is known here. Project roles (and 404 for a project that is not the
+  // person's) come with the first project route, which resolves the membership before this check.
+  app.addHook("preValidation", async (request, reply) => {
+    const access = request.routeOptions.config.access;
+    if (access === undefined || access === "public") return;
+    const user = await currentUser(request, reply);
+    if (!user) return reply.code(HTTP_STATUS.UNAUTHORIZED).send({ error: API_ERROR.UNAUTHORIZED });
+    if (access === "authenticated") return;
+    if (!user.isSuperAdmin || !can("SUPER_ADMIN", access)) {
+      return reply.code(HTTP_STATUS.FORBIDDEN).send({ error: API_ERROR.FORBIDDEN });
+    }
+  });
+
+  app.get(API_ROUTES.GOOGLE_CALLBACK, { config: { access: "public" } }, async (request, reply) => {
     // The person pressed Cancel on Google's screen: Google comes back with ?error=access_denied.
     if (callbackQuerySchema.safeParse(request.query).data?.error === SIGN_IN_ERROR.ACCESS_DENIED) {
       return fail(reply, SIGN_IN_ERROR.ACCESS_DENIED);
@@ -170,22 +197,26 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     return reply.redirect(`${webBase}${WEB_ROUTES.HOME}`);
   });
 
-  app.post(API_ROUTES.LOGOUT, async (request, reply) => {
+  app.post(API_ROUTES.LOGOUT, { config: { access: "public" } }, async (request, reply) => {
     const id = sessionIdFrom(request);
     if (id) await store.deleteSession(id);
     clearSessionCookie(reply);
     return reply.code(HTTP_STATUS.NO_CONTENT).send();
   });
 
-  app.get(API_ROUTES.ME, async (request, reply): Promise<MeResponse | ApiError> => {
-    const user = await currentUser(request, reply);
-    if (!user) return reply.code(HTTP_STATUS.UNAUTHORIZED).send({ error: API_ERROR.UNAUTHORIZED });
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-      isSuperAdmin: user.isSuperAdmin,
-    };
-  });
+  app.get(
+    API_ROUTES.ME,
+    { config: { access: "authenticated" } },
+    async (request, reply): Promise<MeResponse | ApiError> => {
+      const user = await currentUser(request, reply);
+      if (!user) return reply.code(HTTP_STATUS.UNAUTHORIZED).send({ error: API_ERROR.UNAUTHORIZED });
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        isSuperAdmin: user.isSuperAdmin,
+      };
+    },
+  );
 };
