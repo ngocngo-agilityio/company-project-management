@@ -1,9 +1,7 @@
 import { Skeleton } from "@board/ui";
 import { useEffect, useState } from "react";
-import { SESSION_CHECK_MESSAGES } from "../messages";
-
-/** After this long we tell the person the server may be starting up (free hosting sleeps when idle). */
-export const WAKE_UP_HINT_DELAY_MS = 5_000;
+import { SESSION_CHECK_MESSAGES } from "../constants/auth-messages";
+import { WAKE_UP_HINT_DELAY_MS } from "../constants/timing";
 
 /** App-shaped placeholder (sidebar, top bar, content) shown while we check the session. */
 export function AppShellSkeleton() {

@@ -14,7 +14,7 @@ paths:
 - In `packages/ui/src/components`, one PascalCase folder per component: `<Name>/<Name>.tsx`,
   `<Name>.stories.tsx` (a11y-checked in light and dark) and `__tests__/<Name>.test.tsx`. Public exports
   go in `src/index.ts`; do not add an `index.ts` per component folder. Shared helpers go in `lib/`.
-- In `apps/web/src`, organise by type: `pages/`, `components/`, `hooks/`, `api/`, `utils/`, `types/`.
+- In `apps/web/src`, organise by type: `pages/`, `components/`, `hooks/`, `api/`, `constants/` (messages, query keys, timings, URLs), `utils/`, `types/`.
   Folder layout and file naming: `.claude/rules/structure.md`.
 - Every data screen handles loading, empty, error and success; Observers get a read-only screen.
 - Responsive from 375px. Under 900px the sidebar becomes a drawer. Touch targets at least 44px.

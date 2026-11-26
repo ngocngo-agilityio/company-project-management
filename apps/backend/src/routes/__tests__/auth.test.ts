@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { meResponseSchema, SESSION_COOKIE_NAME } from "@board/shared";
 import { buildApp } from "../../app.js";
 import type { GoogleAuth, GoogleProfile } from "../../services/google.js";
-import { SESSION_TTL_MS } from "../auth.js";
+import { SESSION_TTL_MS } from "../../constants/session.js";
 import type { AuthStore, StoredSession, StoredUser } from "../../types/auth-store.js";
 
 const WEB = "https://web.example.com";

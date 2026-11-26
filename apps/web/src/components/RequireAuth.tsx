@@ -2,7 +2,7 @@ import { WEB_ROUTES } from "@board/shared";
 import { Alert, Button } from "@board/ui";
 import { Navigate, Outlet } from "react-router";
 import { useMe } from "../api/useMe";
-import { SESSION_CHECK_MESSAGES } from "../messages";
+import { SESSION_CHECK_MESSAGES } from "../constants/auth-messages";
 import { AppShellSkeleton } from "./AppShellSkeleton";
 
 /** Guards private routes. Without a session the person goes to /login. This is only UX; the API checks too. */

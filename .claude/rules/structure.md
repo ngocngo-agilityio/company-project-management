@@ -33,15 +33,15 @@ Rule of thumb: a file that exports a component or a hook is named after its expo
 ## Layout
 
 - `apps/web/src`: `pages/` (screens, one PascalCase file each), `components/`, `hooks/` (shared UI hooks),
-  `api/` (fetch functions and TanStack Query hooks per resource), `utils/` (helpers), `types/` (types used by several files). `main.tsx` and `routes.tsx` stay in `src/`.
+  `api/` (fetch functions and TanStack Query hooks per resource), `constants/` (messages, query keys, timings, URLs; one file per topic, e.g. `auth-messages.ts`), `utils/` (helpers), `types/` (types used by several files). `main.tsx` and `routes.tsx` stay in `src/`.
   Create a folder when its first file arrives.
 - `apps/backend/src`: `routes/` (thin: validate, check permission, call a service), `services/` (logic and
-  Prisma, no separate repository layer), `plugins/` (cross-cutting Fastify plugins), `utils/` (helpers), `types/` (types used by several files).
+  Prisma, no separate repository layer), `plugins/` (cross-cutting Fastify plugins), `constants/`, `utils/` (helpers), `types/` (types used by several files).
   `app.ts`, `env.ts`, `server.ts`, `seed.ts` stay in `src/`. Zod schemas come from `@board/shared`.
 - `packages/ui/src/components/<Name>/`: `<Name>.tsx`, `<Name>.stories.tsx`, `__tests__/<Name>.test.tsx`.
   Shared helpers in `lib/`.
-- `packages/shared/src`: one file per topic, exported from `src/index.ts`. `utils/` holds pure helpers shared by web and backend; `types/` holds types not derived from a zod schema.
-- `utils/` and `types/` (web, backend, shared) exist from the start with a `.gitkeep`; delete it when the first file arrives. Every other folder is still created with its first file.
+- `packages/shared/src`: one file per topic, exported from `src/index.ts`. `constants/` holds constant values, `utils/` pure helpers shared by web and backend, `types/` zod schemas with their inferred types. `index.ts` only re-exports: define nothing in it.
+- `utils/` and `types/` (web, backend, shared) are created early: while one is empty it holds a `.gitkeep`, deleted when the first file arrives. Every other folder is still created with its first file.
 
 ## Barrels
 

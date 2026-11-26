@@ -16,11 +16,10 @@ import {
 } from "@board/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { SESSION_TTL_MS } from "../constants/session.js";
 import type { GoogleAuth } from "../services/google.js";
 import type { AuthStore, StoredUser } from "../types/auth-store.js";
 
-/** A session lasts 7 days from the last time it was used. */
-export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 /** Do not write to the database on every request: refresh `lastUsedAt` at most this often. */
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 

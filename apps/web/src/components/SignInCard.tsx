@@ -1,6 +1,6 @@
 import { Alert, Button, Logo } from "@board/ui";
-import { GOOGLE_SIGN_IN_URL } from "../api/client";
-import { SIGN_IN_FAILURE_MESSAGES, SIGN_IN_INVITE_ONLY_NOTE } from "../messages";
+import { GOOGLE_SIGN_IN_URL } from "../constants/api";
+import { SIGN_IN_FAILURE_MESSAGES, SIGN_IN_INVITE_ONLY_NOTE } from "../constants/auth-messages";
 import { GoogleIcon } from "./GoogleIcon";
 
 type SignInCardProps = {

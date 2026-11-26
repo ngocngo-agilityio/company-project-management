@@ -12,7 +12,7 @@ paths:
 - POST, PATCH, DELETE check `Origin`. Sign-in and invitation routes are rate limited.
 - Read env only through `src/env.ts`, never `process.env` elsewhere.
 - Keep route handlers thin: parse input, check permission, call a service, return JSON.
-- Organise `src/` by layer: `routes/`, `services/`, `plugins/`, `utils/`, `types/`. See `.claude/rules/structure.md`.
+- Organise `src/` by layer: `routes/`, `services/`, `plugins/`, `constants/`, `utils/`, `types/`. See `.claude/rules/structure.md`.
 - An archived project is read-only. Respect the invariants: last Owner, last Super Admin.
 - Never import from `apps/web` or `@board/web`.
 - Do not log secrets, tokens or personal data.
