@@ -10,7 +10,7 @@ From the [Spec](https://claude.ai/artifact/Lb4ZUJpjoWyE49tfm4dfMR) and the [Plan
 
 ## Permission keys
 
-Keys are `resource:action`. They are a proposal and may be renamed when S1-PERM-01 is built; the matrix is what matters.
+Keys are `resource:action`, implemented in `packages/shared/src/constants/permissions.ts` (`PERMISSIONS`) and read with `can(role, action)`. `board:view` and `cards:mine` are two separate keys. `can` answers at role level only: "is the person in this project" (404), "is this their own comment" and the 409, last-Owner and last-Super-Admin rules are checked by the route or service. Callers pass `SUPER_ADMIN` when `user.is_super_admin` is set, otherwise the membership role.
 
 | Key                                                                           | Super Admin | Owner | Member | Observer |
 | ----------------------------------------------------------------------------- | :---------: | :---: | :----: | :------: |
