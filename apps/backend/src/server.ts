@@ -1,7 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { buildApp } from "./app.js";
-import { createGoogleAuth } from "./auth/google.js";
-import { createPrismaAuthStore } from "./auth/prisma-store.js";
+import { createGoogleAuth } from "./services/google.js";
+import { createPrismaAuthStore } from "./services/prisma-store.js";
 import { loadEnv, type Env } from "./env.js";
 import { PrismaClient } from "./generated/prisma/client.js";
 

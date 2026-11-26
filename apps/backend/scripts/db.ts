@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { assertLocalDatabase } from "../src/db-guard.js";
+import { assertLocalDatabase } from "../src/lib/db-guard.js";
 import { loadEnv } from "../src/env.js";
 
 const commands = { migrate: ["migrate", "dev"], deploy: ["migrate", "deploy"] } as const;

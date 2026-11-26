@@ -14,7 +14,7 @@ paths:
 - Local: Docker Postgres (`docker compose up -d --wait`), then `pnpm db:migrate`, `pnpm db:seed`.
   Render: `prisma migrate deploy`. `db:*` scripts refuse a non-local `DATABASE_URL`; `ALLOW_REMOTE_DB=1` lifts this for `db:deploy`/`db:seed`, never `db:migrate`.
 - A partial unique index (e.g. one Pending invitation per project and email) is written by hand
-  in the migration SQL before it is applied, and listed in `src/migrations.test.ts`. `migrate dev` will add
+  in the migration SQL before it is applied, and listed in `src/__tests__/migrations.test.ts`. `migrate dev` will add
   a `DROP INDEX` for it to the next migration: delete that line by hand.
 - Models are PascalCase in Prisma, mapped to singular snake_case tables and columns
   (`@@map`, `@map`). Ids are uuid. Timestamps: `created_at`, `archived_at`, `expires_at`.

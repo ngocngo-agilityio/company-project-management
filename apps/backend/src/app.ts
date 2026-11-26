@@ -1,9 +1,9 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import type { HealthResponse } from "@board/shared";
-import { registerOriginCheck } from "./auth/origin.js";
-import { authPlugin, type AuthOptions } from "./auth/routes.js";
-import { aboutPage, privacyPage } from "./pages.js";
+import { registerOriginCheck } from "./lib/origin.js";
+import { authPlugin, type AuthOptions } from "./routes/auth.js";
+import { aboutPage, privacyPage } from "./routes/pages.js";
 
 export interface BuildAppOptions {
   logger?: boolean;
