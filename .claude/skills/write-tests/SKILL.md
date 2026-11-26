@@ -26,7 +26,7 @@ Follow `.claude/rules/testing.md`.
 4. Query the UI by role or label, not by CSS class.
 5. Mock only boundaries (network, database). Never mock zod or `@board/shared`.
 6. Never use real secrets or the real Supabase database in tests.
-7. Run `pnpm test` for the whole repo before finishing.
+7. Run `pnpm test` for the whole repo before finishing. Run `pnpm test:coverage` to check that the new code is exercised.
 
 ## Playwright (not installed yet)
 
