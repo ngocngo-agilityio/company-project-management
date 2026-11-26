@@ -1,5 +1,5 @@
 import { APP_NAME, SIGN_IN_ERROR } from "@board/shared";
-import { INVITATION_CONTACT, INVITATION_VALID_DAYS } from "./common";
+import { INVITATION_CONTACT, INVITATION_VALID_DAYS } from "./common-messages";
 
 /** SignInCard: the alert shown when the person came back from Google without signing in. */
 export const SIGN_IN_FAILURE_MESSAGES = {

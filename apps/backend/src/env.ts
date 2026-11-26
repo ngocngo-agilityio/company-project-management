@@ -1,10 +1,9 @@
 import { normalizeEmail } from "@board/shared";
 import { z } from "zod";
+import { DEFAULT_COMPANY_TIMEZONE } from "./constants/index.js";
 
 // Empty strings (e.g. `PORT=` copied from .env.example) are treated as unset.
 const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
-
-export const DEFAULT_COMPANY_TIMEZONE = "Asia/Ho_Chi_Minh";
 
 /** True for a time zone name the runtime knows (IANA, e.g. Asia/Ho_Chi_Minh or UTC). */
 export function isTimeZone(value: string): boolean {

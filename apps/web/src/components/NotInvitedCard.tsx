@@ -2,7 +2,7 @@ import { WEB_ROUTES, type SignInError } from "@board/shared";
 import { Button } from "@board/ui";
 import { Lock } from "lucide-react";
 import { Link } from "react-router";
-import { REFUSAL_MESSAGES } from "../messages";
+import { REFUSAL_MESSAGES } from "../constants";
 
 type NotInvitedCardProps = {
   /** `not_invited`: no invitation. `deactivated`: removed from its last project (Inactive). */

@@ -1,9 +1,9 @@
 import { SIGN_IN_ERROR, SIGN_IN_ERROR_PARAM, signInErrorSchema, WEB_ROUTES } from "@board/shared";
 import type { ReactNode } from "react";
 import { Navigate, useSearchParams } from "react-router";
-import { useMe } from "../api/useMe";
-import { NotInvitedCard } from "../components/NotInvitedCard";
-import { SignInCard } from "../components/SignInCard";
+import { useMe } from "../api";
+import { NotInvitedCard } from "../components";
+import { SignInCard } from "../components";
 
 /**
  * /login. The API sends people back here with `?error=<code>`:

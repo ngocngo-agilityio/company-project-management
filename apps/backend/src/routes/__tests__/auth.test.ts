@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { meResponseSchema, SESSION_COOKIE_NAME } from "@board/shared";
 import { buildApp } from "../../app.js";
 import type { GoogleAuth, GoogleProfile } from "../../services/google.js";
-import { SESSION_TTL_MS } from "../auth.js";
-import type { AuthStore, StoredSession, StoredUser } from "../../services/store.js";
+import { SESSION_TTL_MS } from "../../constants/index.js";
+import type { AuthStore, StoredSession, StoredUser } from "../../types/index.js";
 
 const WEB = "https://web.example.com";
 const START = new Date("2026-11-25T08:00:00.000Z");

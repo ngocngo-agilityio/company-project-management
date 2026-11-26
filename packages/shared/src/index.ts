@@ -1,8 +1,3 @@
-import { z } from "zod";
-
-export const healthResponseSchema = z.object({ ok: z.literal(true) });
-export type HealthResponse = z.infer<typeof healthResponseSchema>;
-
-export { normalizeEmail } from "./email.js";
-export { meResponseSchema, type MeResponse } from "./auth.js";
 export * from "./constants/index.js";
+export { normalizeEmail } from "./utils/index.js";
+export { meResponseSchema, healthResponseSchema, type MeResponse, type HealthResponse } from "./types/index.js";
