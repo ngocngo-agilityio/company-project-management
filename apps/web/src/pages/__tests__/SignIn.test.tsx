@@ -67,6 +67,26 @@ describe("Sign-in screen", () => {
     expect(screen.getByRole("link", { name: "Try again" })).toHaveAttribute("href", "/auth/google");
   });
 
+  it("shows the wait message without Try again for ?error=rate_limited", async () => {
+    mockSession(false);
+    renderAt("/login?error=rate_limited");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Too many sign-in attempts.");
+    expect(alert).toHaveTextContent("Please wait a minute, then try again.");
+    expect(screen.queryByRole("link", { name: "Try again" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Continue with Google" })).toBeInTheDocument();
+  });
+
+  it("shows the card at once, without waiting for the session check", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    renderAt("/login");
+    expect(screen.getByRole("heading", { level: 1, name: "Sign in to Company Board" })).toBeInTheDocument();
+    expect(screen.queryByText("Checking your session…")).not.toBeInTheDocument();
+  });
+
   it("shows the not-invited card for ?error=not_invited", async () => {
     mockSession(false);
     renderAt("/login?error=not_invited");

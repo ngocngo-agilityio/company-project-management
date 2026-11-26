@@ -54,6 +54,9 @@ const envSchema = z.object({
   // 1 on Render: web and API are on different addresses, so the cookie is Secure + SameSite=None.
   // 0 (default) for local development over plain http: SameSite=Lax, not Secure.
   COOKIE_CROSS_SITE: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
+  // 1 when the API runs behind a proxy (Render): the client address comes from X-Forwarded-For,
+  // so the rate limit counts each person apart. 0 (default) locally: the header could be forged.
+  TRUST_PROXY: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
 });
 
 export type Env = z.infer<typeof envSchema>;

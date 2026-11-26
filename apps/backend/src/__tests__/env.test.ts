@@ -41,6 +41,7 @@ describe("parseEnv", () => {
       ALLOW_REMOTE_DB: "0",
       COMPANY_TIMEZONE: "Asia/Ho_Chi_Minh",
       COOKIE_CROSS_SITE: "0",
+      TRUST_PROXY: "0",
     });
   });
 

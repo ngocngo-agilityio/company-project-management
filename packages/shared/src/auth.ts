@@ -20,6 +20,7 @@ export const signInErrorSchema = z.enum([
   "deactivated",
   "oauth_failed",
   "access_denied",
+  "rate_limited",
 ]);
 export type SignInError = z.infer<typeof signInErrorSchema>;
 

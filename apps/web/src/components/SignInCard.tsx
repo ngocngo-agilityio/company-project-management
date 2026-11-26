@@ -7,6 +7,7 @@ const FAILURES = {
     title: "Sign-in was cancelled.",
     text: "You closed Google before finishing. Try again when you are ready.",
   },
+  rateLimited: { title: "Too many sign-in attempts.", text: "Please wait a minute, then try again." },
   failed: { title: "Sign-in failed.", text: "Something went wrong with Google. Please try again." },
 } as const;
 
@@ -30,9 +31,11 @@ export function SignInCard({ failure }: SignInCardProps) {
         <Alert
           title={FAILURES[failure].title}
           action={
-            <Button variant="danger" asChild>
-              <a href={GOOGLE_SIGN_IN_URL}>Try again</a>
-            </Button>
+            failure === "rateLimited" ? undefined : (
+              <Button variant="danger" asChild>
+                <a href={GOOGLE_SIGN_IN_URL}>Try again</a>
+              </Button>
+            )
           }
         >
           {FAILURES[failure].text}

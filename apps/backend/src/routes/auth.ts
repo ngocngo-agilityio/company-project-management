@@ -11,6 +11,12 @@ export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 /** Do not write to the database on every request: refresh `lastUsedAt` at most this often. */
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 
+/** Sign-in attempts allowed per minute and address (`/auth/google` and its callback). */
+const SIGN_IN_LIMIT = 10;
+/** Sign-outs allowed per minute and address. Counted apart from sign-in. */
+const LOGOUT_LIMIT = 30;
+const isLogout = (request: FastifyRequest) => request.url.startsWith("/auth/logout");
+
 const callbackQuerySchema = z.object({ error: z.string().optional() });
 
 export interface AuthOptions {
@@ -30,9 +36,11 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
 
   await app.register(fastifyCookie);
   // Only the /auth/* routes are limited; /api/me is polled by the web app.
+  // Sign-in routes: 10 a minute per address. Logout has its own, separate counter.
   await app.register(fastifyRateLimit, {
     global: true,
-    max: 10,
+    max: (request) => (isLogout(request) ? LOGOUT_LIMIT : SIGN_IN_LIMIT),
+    keyGenerator: (request) => `${isLogout(request) ? "logout" : "sign-in"}:${request.ip}`,
     timeWindow: "1 minute",
     allowList: (request) => !request.url.startsWith("/auth/"),
   });
@@ -48,6 +56,17 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     reply.setCookie(SESSION_COOKIE_NAME, id, { ...cookieBase, expires });
   const clearSessionCookie = (reply: FastifyReply) => reply.clearCookie(SESSION_COOKIE_NAME, cookieBase);
   const fail = (reply: FastifyReply, code: SignInError) => reply.redirect(`${webBase}/login?error=${code}`);
+
+  // The browser goes straight to /auth/google, so a too-many-attempts answer would show as raw JSON.
+  // Send it back to the sign-in screen with a code instead. Other routes keep the JSON answer.
+  app.setErrorHandler((error: { statusCode?: number; message?: string }, request, reply) => {
+    if (error.statusCode === 429 && request.method === "GET" && request.url.startsWith("/auth/google")) {
+      return fail(reply, "rate_limited");
+    }
+    return reply
+      .code(error.statusCode ?? 500)
+      .send(error.statusCode && error.statusCode < 500 ? error : { error: "internal_error" });
+  });
 
   const sessionIdFrom = (request: FastifyRequest): string | null => {
     const parsed = z.uuid().safeParse(request.cookies[SESSION_COOKIE_NAME]);

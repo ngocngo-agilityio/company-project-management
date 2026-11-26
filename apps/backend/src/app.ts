@@ -7,13 +7,15 @@ import { aboutPage, privacyPage } from "./routes/pages.js";
 
 export interface BuildAppOptions {
   logger?: boolean;
+  /** true: trust X-Forwarded-For (API behind a proxy), so the rate limit sees the real client address. */
+  trustProxy?: boolean;
   webOrigin?: string;
   /** Google sign-in, session and `/api/me`. Left out in tests that do not need it. */
   auth?: Omit<AuthOptions, "webOrigin">;
 }
 
-export function buildApp({ logger = false, webOrigin, auth }: BuildAppOptions = {}) {
-  const app = Fastify({ logger });
+export function buildApp({ logger = false, trustProxy = false, webOrigin, auth }: BuildAppOptions = {}) {
+  const app = Fastify({ logger, trustProxy });
 
   // Web and API live on different addresses in production, so allow exactly one web origin.
   if (webOrigin) {
