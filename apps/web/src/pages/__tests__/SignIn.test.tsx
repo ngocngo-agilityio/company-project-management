@@ -101,6 +101,25 @@ describe("Sign-in screen", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Your account is inactive" })).toBeInTheDocument();
   });
 
+  it.each(["not_invited", "deactivated"])(
+    "never shows an email on the refusal card for ?error=%s, even if the address carries one",
+    async (code) => {
+      mockSession(false);
+      renderAt(`/login?error=${code}&email=stranger@example.com`);
+      await screen.findByRole("heading", { level: 1 });
+      expect(document.body).not.toHaveTextContent("stranger@example.com");
+      expect(document.body).not.toHaveTextContent("@");
+    },
+  );
+
+  it("keeps the refusal card on /login and starts no session", async () => {
+    mockSession(false);
+    const router = renderAt("/login?error=not_invited");
+    expect(await screen.findByRole("heading", { level: 1, name: "You have not been invited" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(screen.queryByRole("heading", { level: 1, name: "Projects" })).not.toBeInTheDocument();
+  });
+
   it("Back to sign in returns to the plain sign-in card", async () => {
     mockSession(false);
     const router = renderAt("/login?error=not_invited");
