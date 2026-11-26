@@ -1,6 +1,10 @@
 import fastifyOauth2, { type OAuth2Namespace, type ProviderConfiguration } from "@fastify/oauth2";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { API_ROUTES } from "@board/shared";
 import { z } from "zod";
+
+/** Give up on Google's userinfo answer after this long. */
+const USERINFO_TIMEOUT_MS = 10_000;
 
 /** What we keep from Google. `emailVerified` must be true before the email is trusted. */
 export interface GoogleProfile {
@@ -50,7 +54,7 @@ export function createGoogleAuth(config: GoogleConfig): GoogleAuth {
           // The typings declare this constant on the plugin's interface, not on the imported function.
           auth: (fastifyOauth2 as unknown as { GOOGLE_CONFIGURATION: ProviderConfiguration }).GOOGLE_CONFIGURATION,
         },
-        startRedirectPath: "/auth/google",
+        startRedirectPath: API_ROUTES.GOOGLE_SIGN_IN,
         callbackUri: config.redirectUri,
         pkce: "S256",
         cookie: { secure: config.secureCookies },
@@ -63,7 +67,7 @@ export function createGoogleAuth(config: GoogleConfig): GoogleAuth {
       const { token } = await oauth.getAccessTokenFromAuthorizationCodeFlow(request, reply);
       const res = await fetch(USERINFO_URL, {
         headers: { Authorization: `Bearer ${token.access_token}` },
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(USERINFO_TIMEOUT_MS),
       });
       if (!res.ok) throw new Error(`Google userinfo answered ${res.status}`);
       const info = userinfoSchema.parse(await res.json());

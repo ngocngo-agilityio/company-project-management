@@ -2,13 +2,17 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyRateLimit from "@fastify/rate-limit";
 import {
   API_ERROR,
+  API_ROUTES,
+  AUTH_ROUTE_PREFIX,
   HTTP_STATUS,
   normalizeEmail,
   SESSION_COOKIE_NAME,
   SIGN_IN_ERROR,
+  SIGN_IN_ERROR_PARAM,
   type ApiError,
   type MeResponse,
   type SignInError,
+  WEB_ROUTES,
 } from "@board/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
@@ -24,7 +28,7 @@ const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 const SIGN_IN_LIMIT = 10;
 /** Sign-outs allowed per minute and address. Counted apart from sign-in. */
 const LOGOUT_LIMIT = 30;
-const isLogout = (request: FastifyRequest) => request.url.startsWith("/auth/logout");
+const isLogout = (request: FastifyRequest) => request.url.startsWith(API_ROUTES.LOGOUT);
 
 const callbackQuerySchema = z.object({ error: z.string().optional() });
 
@@ -51,7 +55,7 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     max: (request) => (isLogout(request) ? LOGOUT_LIMIT : SIGN_IN_LIMIT),
     keyGenerator: (request) => `${isLogout(request) ? "logout" : "sign-in"}:${request.ip}`,
     timeWindow: "1 minute",
-    allowList: (request) => !request.url.startsWith("/auth/"),
+    allowList: (request) => !request.url.startsWith(AUTH_ROUTE_PREFIX),
   });
   await google.register(app);
 
@@ -64,7 +68,8 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   const setSessionCookie = (reply: FastifyReply, id: string, expires: Date) =>
     reply.setCookie(SESSION_COOKIE_NAME, id, { ...cookieBase, expires });
   const clearSessionCookie = (reply: FastifyReply) => reply.clearCookie(SESSION_COOKIE_NAME, cookieBase);
-  const fail = (reply: FastifyReply, code: SignInError) => reply.redirect(`${webBase}/login?error=${code}`);
+  const fail = (reply: FastifyReply, code: SignInError) =>
+    reply.redirect(`${webBase}${WEB_ROUTES.LOGIN}?${SIGN_IN_ERROR_PARAM}=${code}`);
 
   // The browser goes straight to /auth/google, so a too-many-attempts answer would show as raw JSON.
   // Send it back to the sign-in screen with a code instead. Other routes keep the JSON answer.
@@ -72,7 +77,7 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     if (
       error.statusCode === HTTP_STATUS.TOO_MANY_REQUESTS &&
       request.method === "GET" &&
-      request.url.startsWith("/auth/google")
+      request.url.startsWith(API_ROUTES.GOOGLE_SIGN_IN)
     ) {
       return fail(reply, SIGN_IN_ERROR.RATE_LIMITED);
     }
@@ -113,7 +118,7 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     return session.user;
   }
 
-  app.get("/auth/google/callback", async (request, reply) => {
+  app.get(API_ROUTES.GOOGLE_CALLBACK, async (request, reply) => {
     // The person pressed Cancel on Google's screen: Google comes back with ?error=access_denied.
     if (callbackQuerySchema.safeParse(request.query).data?.error === SIGN_IN_ERROR.ACCESS_DENIED) {
       return fail(reply, SIGN_IN_ERROR.ACCESS_DENIED);
@@ -142,17 +147,17 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
     const expiresAt = new Date(now().getTime() + SESSION_TTL_MS);
     const session = await store.createSession(user.id, expiresAt);
     setSessionCookie(reply, session.id, expiresAt);
-    return reply.redirect(`${webBase}/`);
+    return reply.redirect(`${webBase}${WEB_ROUTES.HOME}`);
   });
 
-  app.post("/auth/logout", async (request, reply) => {
+  app.post(API_ROUTES.LOGOUT, async (request, reply) => {
     const id = sessionIdFrom(request);
     if (id) await store.deleteSession(id);
     clearSessionCookie(reply);
     return reply.code(HTTP_STATUS.NO_CONTENT).send();
   });
 
-  app.get("/api/me", async (request, reply): Promise<MeResponse | ApiError> => {
+  app.get(API_ROUTES.ME, async (request, reply): Promise<MeResponse | ApiError> => {
     const user = await currentUser(request, reply);
     if (!user) return reply.code(HTTP_STATUS.UNAUTHORIZED).send({ error: API_ERROR.UNAUTHORIZED });
     return {

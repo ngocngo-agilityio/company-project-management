@@ -1,4 +1,4 @@
-import { APP_NAME } from "@board/shared";
+import { API_ROUTES, APP_NAME } from "@board/shared";
 
 // Public pages Google asks for on the OAuth consent screen (homepage and privacy policy).
 // Kept as strings so `tsc` builds them with the code; the build does not copy .html files.
@@ -21,7 +21,7 @@ function layout(title: string, body: string): string {
     </style>
   </head>
   <body>
-    <nav><a href="/about">About</a> · <a href="/privacy">Privacy policy</a></nav>
+    <nav><a href="${API_ROUTES.ABOUT}">About</a> · <a href="${API_ROUTES.PRIVACY}">Privacy policy</a></nav>
     ${body}
   </body>
 </html>
@@ -35,7 +35,7 @@ export function aboutPage(contactEmail?: string): string {
     `<h1>${APP_NAME}</h1>
     <p>${APP_NAME} is an internal tool for managing company projects. Work is organised into projects, boards, lists and cards, so a team can see who does what, by when, and how far along it is.</p>
     <p>Access is by invitation only. People sign in with their Google account, and only invited people can enter.</p>
-    <p>Read the <a href="/privacy">privacy policy</a>.${contact(contactEmail, " Questions: ")}</p>`,
+    <p>Read the <a href="${API_ROUTES.PRIVACY}">privacy policy</a>.${contact(contactEmail, " Questions: ")}</p>`,
   );
 }
 

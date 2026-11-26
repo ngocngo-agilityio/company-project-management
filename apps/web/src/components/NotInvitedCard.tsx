@@ -1,4 +1,4 @@
-import { type SignInError } from "@board/shared";
+import { WEB_ROUTES, type SignInError } from "@board/shared";
 import { Button } from "@board/ui";
 import { Lock } from "lucide-react";
 import { Link } from "react-router";
@@ -23,7 +23,7 @@ export function NotInvitedCard({ reason }: NotInvitedCardProps) {
       </div>
       <p className="w-full rounded-10 bg-surface-2 px-3.5 py-3 text-left text-body-small text-ink-muted">{NOTE}</p>
       <Button asChild className="min-h-11 w-full">
-        <Link to="/login">Back to sign in</Link>
+        <Link to={WEB_ROUTES.LOGIN}>Back to sign in</Link>
       </Button>
     </div>
   );

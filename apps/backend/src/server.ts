@@ -5,6 +5,9 @@ import { createPrismaAuthStore } from "./services/prisma-store.js";
 import { loadEnv, type Env } from "./env.js";
 import { PrismaClient } from "./generated/prisma/client.js";
 
+/** Force-exit after this long if `close()` hangs. */
+const SHUTDOWN_TIMEOUT_MS = 10_000;
+
 let env: Env;
 try {
   env = loadEnv();
@@ -52,7 +55,7 @@ async function shutdown(code = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
   // Force-exit if close() hangs (e.g. stuck keep-alive connections).
-  setTimeout(() => process.exit(1), 10_000).unref();
+  setTimeout(() => process.exit(1), SHUTDOWN_TIMEOUT_MS).unref();
   try {
     await app.close();
     await prisma.$disconnect();

@@ -1,3 +1,4 @@
+import { WEB_ROUTES } from "@board/shared";
 import { Alert, Button } from "@board/ui";
 import { Navigate, Outlet } from "react-router";
 import { useMe } from "../api/useMe";
@@ -26,6 +27,6 @@ export function RequireAuth() {
       </main>
     );
   }
-  if (data === null) return <Navigate to="/login" replace />;
+  if (data === null) return <Navigate to={WEB_ROUTES.LOGIN} replace />;
   return <Outlet />;
 }

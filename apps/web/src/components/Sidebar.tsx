@@ -1,12 +1,13 @@
+import { WEB_ROUTES } from "@board/shared";
 import { Avatar, Button, Dialog, DialogContent, DialogTrigger, Logo } from "@board/ui";
 import { FolderKanban, SquareCheckBig, Users, type LucideIcon } from "lucide-react";
 import { NavLink } from "react-router";
 import { ApiStatus } from "./ApiStatus";
 
 const NAV_ITEMS: { to: string; label: string; icon: LucideIcon }[] = [
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/my-cards", label: "My cards", icon: SquareCheckBig },
-  { to: "/people", label: "People", icon: Users },
+  { to: WEB_ROUTES.PROJECTS, label: "Projects", icon: FolderKanban },
+  { to: WEB_ROUTES.MY_CARDS, label: "My cards", icon: SquareCheckBig },
+  { to: WEB_ROUTES.PEOPLE, label: "People", icon: Users },
 ];
 
 const navLinkStyles =
