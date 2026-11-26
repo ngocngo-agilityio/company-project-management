@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { WAKE_UP_HINT_DELAY_MS } from "../constants";
+import { SESSION_HINT_STORAGE_KEY, WAKE_UP_HINT_DELAY_MS } from "../constants";
 import { appRoutes } from "../routes";
 
 const me = {
@@ -33,7 +33,11 @@ function renderAt(path: string) {
   return router;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  localStorage.clear();
+  sessionStorage.clear();
+});
 
 describe("route guard", () => {
   it.each(["/", "/projects", "/my-cards", "/people", "/nope"])("sends %s to /login without a session", async (path) => {
@@ -80,11 +84,16 @@ describe("route guard", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Projects" })).toBeInTheDocument();
   });
 
-  it("stores nothing about the session in the browser", async () => {
+  it("stores no token or personal data in the browser, only the two UX hints", async () => {
     signedIn();
     renderAt("/projects");
     await screen.findByRole("heading", { level: 1, name: "Projects" });
-    expect(localStorage.length).toBe(0);
+    // The only allowed entries: a "1" flag and (while signed out) an internal path. Never the person or a token.
+    expect(Object.keys(localStorage)).toEqual([SESSION_HINT_STORAGE_KEY]);
+    expect(localStorage.getItem(SESSION_HINT_STORAGE_KEY)).toBe("1");
     expect(sessionStorage.length).toBe(0);
+    const everything = JSON.stringify({ ...localStorage, ...sessionStorage });
+    expect(everything).not.toContain(me.email);
+    expect(everything).not.toContain(me.id);
   });
 });
