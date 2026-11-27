@@ -20,7 +20,9 @@ import { z } from "zod";
 import { SESSION_TTL_MS } from "../constants/index.js";
 import type { GoogleAuth } from "../services/google.js";
 import { evaluateGate } from "../services/invitation-gate.js";
-import type { AuthStore, StoredUser } from "../types/index.js";
+import type { AuthStore, PeopleStore, ProjectStore, StoredUser } from "../types/index.js";
+import { peoplePlugin } from "./people.js";
+import { projectsPlugin } from "./projects.js";
 
 /** Do not write to the database on every request: refresh `lastUsedAt` at most this often. */
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
@@ -35,6 +37,10 @@ const callbackQuerySchema = z.object({ error: z.string().optional() });
 
 export interface AuthOptions {
   store: AuthStore;
+  /** Project routes. Left out in tests that do not need them. */
+  projects?: ProjectStore;
+  /** People route. Left out in tests that do not need it. */
+  people?: PeopleStore;
   google: GoogleAuth;
   /** Where the browser goes after sign-in. Unset: relative links (same origin). */
   webOrigin?: string | undefined;
@@ -80,7 +86,17 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
 
   // The browser goes straight to /auth/google, so a too-many-attempts answer would show as raw JSON.
   // Send it back to the sign-in screen with a code instead. Other routes keep the JSON answer.
-  app.setErrorHandler((error: { statusCode?: number; message?: string }, request, reply) => {
+  app.setErrorHandler((error: { statusCode?: number; message?: string; code?: string }, request, reply) => {
+    // Unreadable body (bad JSON, unsupported Content-Type): same shape as a zod refusal, not Fastify's own object.
+    if (
+      error.code?.startsWith("FST_ERR_CTP_") &&
+      error.statusCode &&
+      error.statusCode < HTTP_STATUS.INTERNAL_SERVER_ERROR
+    ) {
+      return reply
+        .code(error.statusCode)
+        .send({ error: API_ERROR.VALIDATION_ERROR, message: error.message ?? "request: unreadable body" });
+    }
     if (
       error.statusCode === HTTP_STATUS.TOO_MANY_REQUESTS &&
       request.method === "GET" &&
@@ -138,8 +154,10 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   // Enforces `config.access` for every route in this plugin and below (see `RouteAccess`). Runs before
   // body and query validation, so an unsigned caller gets 401 or 403, never 400.
   // `public` passes. Otherwise 401 without a session; for an Action, 403 unless the role may do it.
-  // Only the Super Admin flag is known here. Project roles (and 404 for a project that is not the
-  // person's) come with the first project route, which resolves the membership before this check.
+  // Only the Super Admin flag is known here. Routes that depend on a project role (and answer 404 for a
+  // project that is not the person's) need their own membership lookup; `GET /api/projects` therefore
+  // uses `authenticated` and splits "all versus own" in its handler.
+  // Note: an unreadable body (bad JSON, unsupported Content-Type) is refused by Fastify before this hook runs.
   app.addHook("preValidation", async (request, reply) => {
     const access = request.routeOptions.config.access;
     if (access === undefined || access === "public") return;
@@ -219,4 +237,8 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
       };
     },
   );
+
+  // Registered here, not at the app root, so the access hook above covers them.
+  if (opts.projects) await app.register(projectsPlugin, { store: opts.projects, currentUser });
+  if (opts.people) await app.register(peoplePlugin, { store: opts.people, currentUser });
 };
