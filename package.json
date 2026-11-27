@@ -18,7 +18,6 @@
     "db:migrate": "pnpm --filter @board/backend db:migrate",
     "db:deploy": "pnpm --filter @board/backend db:deploy",
     "db:seed": "pnpm --filter @board/backend db:seed",
-    "db:seed:sample": "pnpm --filter @board/backend db:seed:sample",
     "storybook": "pnpm --filter @board/ui storybook",
     "build-storybook": "pnpm --filter @board/ui build-storybook",
     "test:a11y": "pnpm --filter @board/ui test:a11y",
