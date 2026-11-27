@@ -7,6 +7,7 @@ import { People } from "../People";
 
 const ME_ID = "6f1c2f9e-5b0e-4f3a-9a53-3f0c2d9d1a11";
 const NOW = new Date().toISOString();
+const IN_11_DAYS = new Date(Date.now() + 11 * 24 * 60 * 60 * 1000 - 60_000).toISOString();
 const DAYS_AGO_12 = new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString();
 
 const me = (isSuperAdmin: boolean) => ({
@@ -33,16 +34,12 @@ const invitation = (email: string, status: string, over: object = {}) => ({
 type Routes = {
   list?: () => Response;
   create?: (body: unknown) => Response;
-  resend?: (url: string) => Response;
 };
 
 /** One fetch stub for the whole screen. */
 function mockApi(isSuperAdmin: boolean, routes: Routes) {
   const fetchMock = vi.fn((url: string, init?: RequestInit) => {
     if (url.endsWith("/api/me")) return Promise.resolve(Response.json(me(isSuperAdmin)));
-    if (/\/api\/invitations\/[^/]+\/resend$/.test(url) && init?.method === "POST") {
-      return Promise.resolve(routes.resend?.(url) ?? Response.json({}, { status: 500 }));
-    }
     if (url.endsWith("/api/invitations") && init?.method === "POST") {
       return Promise.resolve(routes.create?.(JSON.parse(String(init.body))) ?? Response.json({}, { status: 500 }));
     }
@@ -98,7 +95,11 @@ describe("People screen", () => {
       list: () =>
         Response.json({
           invitations: [
-            invitation("pending@example.com", "PENDING"),
+            invitation("pending@example.com", "PENDING", { expiresAt: IN_11_DAYS }),
+            invitation("hr@example.com", "PENDING", {
+              project: { id: "00000000-0000-4000-8000-0000000000aa", name: "HR onboarding" },
+              role: "MEMBER",
+            }),
             invitation("expired@example.com", "EXPIRED"),
             invitation("accepted@example.com", "ACCEPTED"),
             invitation("revoked@example.com", "REVOKED"),
@@ -109,16 +110,15 @@ describe("People screen", () => {
     const table = await screen.findByRole("table", { name: "Invitations" });
     const row = (email: string) => within(table).getByText(email).closest("tr")!;
 
-    expect(row("pending@example.com")).toHaveTextContent("No project");
+    expect(row("pending@example.com")).toHaveTextContent("App access only");
+    expect(row("pending@example.com")).toHaveTextContent("expires in 11 d");
+    expect(row("hr@example.com")).toHaveTextContent("HR onboarding · Member");
     expect(row("pending@example.com")).toHaveTextContent("Pending");
     expect(row("pending@example.com")).toHaveTextContent("12 d ago");
     expect(within(row("pending@example.com")).getByRole("button", { name: /Copy link/ })).toBeInTheDocument();
-    expect(within(row("pending@example.com")).getByRole("button", { name: /Resend/ })).toBeInTheDocument();
+    expect(within(row("pending@example.com")).queryByRole("button", { name: /Resend/ })).not.toBeInTheDocument();
 
-    expect(within(row("expired@example.com")).getByRole("button", { name: /Resend/ })).toBeInTheDocument();
-    expect(within(row("expired@example.com")).queryByRole("button", { name: /Copy link/ })).not.toBeInTheDocument();
-
-    for (const email of ["accepted@example.com", "revoked@example.com"]) {
+    for (const email of ["expired@example.com", "accepted@example.com", "revoked@example.com"]) {
       expect(within(row(email)).queryByRole("button")).not.toBeInTheDocument();
     }
   });
@@ -131,34 +131,6 @@ describe("People screen", () => {
     await user.click(await screen.findByRole("button", { name: "Copy link: pending@example.com" }));
     expect(await navigator.clipboard.readText()).toBe(`${window.location.origin}/login`);
     expect(screen.getByRole("status", { name: "" })).toHaveTextContent("Link copied");
-  });
-
-  it("resends an invitation and refreshes the list", async () => {
-    const pending = invitation("expired@example.com", "EXPIRED");
-    let resent = false;
-    const fetchMock = mockApi(true, {
-      list: () => Response.json({ invitations: [resent ? { ...pending, status: "PENDING" } : pending] }),
-      resend: () => {
-        resent = true;
-        return Response.json({ ...pending, status: "PENDING" });
-      },
-    });
-    renderScreen();
-    await userEvent.click(await screen.findByRole("button", { name: "Resend: expired@example.com" }));
-    expect(await screen.findByText("Pending")).toBeInTheDocument();
-    const calls = fetchMock.mock.calls.filter(([url]) => String(url).endsWith(`/${pending.id}/resend`));
-    expect(calls).toHaveLength(1);
-  });
-
-  it("says so when a resend is refused with 409", async () => {
-    const listed = invitation("a@example.com", "PENDING");
-    mockApi(true, {
-      list: () => Response.json({ invitations: [listed] }),
-      resend: () => Response.json({ error: "conflict" }, { status: 409 }),
-    });
-    renderScreen();
-    await userEvent.click(await screen.findByRole("button", { name: "Resend: a@example.com" }));
-    expect(await screen.findByText(/Only a pending invitation can be resent/)).toBeInTheDocument();
   });
 
   it("shows a person who is not the Super Admin a refusal and never asks for the list", async () => {

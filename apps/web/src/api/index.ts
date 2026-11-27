@@ -4,7 +4,6 @@ export * from "./useActivePeople";
 export * from "./useCreateInvitation";
 export * from "./useCreateProject";
 export * from "./useInvitations";
-export * from "./useResendInvitation";
 export * from "./useLogout";
 export * from "./useMe";
 export * from "./useProjects";

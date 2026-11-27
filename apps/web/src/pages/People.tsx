@@ -1,36 +1,40 @@
-import { HTTP_STATUS, WEB_ROUTES, type Invitation } from "@board/shared";
+import { WEB_ROUTES, type Invitation } from "@board/shared";
 import { Alert, Badge, Button, Skeleton } from "@board/ui";
 import { Link } from "react-router";
-import { ApiRequestError, useInvitations, useMe, useResendInvitation } from "../api";
+import { useInvitations, useMe } from "../api";
 import { CopyLinkButton, InviteDialog } from "../components";
 import { INVITATION_STATUS_LABELS, PEOPLE_MESSAGES as MSG, ROLE_LABELS } from "../constants";
-import { daysAgo, invitationLink } from "../utils";
+import { daysAgo, expiresIn, invitationLink } from "../utils";
 
 const STATUS_TONE = { PENDING: "warning", ACCEPTED: "success", EXPIRED: "neutral", REVOKED: "danger" } as const;
 
 const headCellStyles = "border-b border-line px-3.5 py-2.5 font-semibold";
 const cellStyles = "px-3.5 py-2.5";
 
-function resendFailureText(error: unknown): string {
-  return error instanceof ApiRequestError && error.status === HTTP_STATUS.CONFLICT
-    ? MSG.RESEND_FAILED_CONFLICT
-    : MSG.RESEND_FAILED_OTHER;
-}
-
 function InvitationRow({ invitation }: { invitation: Invitation }) {
-  const resend = useResendInvitation();
-  // A link only helps while the person can still use it: Pending, or Expired after a Resend.
+  // A link only helps while the person can still use it.
   const canCopy = invitation.status === "PENDING";
-  const canResend = invitation.status === "PENDING" || invitation.status === "EXPIRED";
-  const resending = resend.isPending && resend.variables === invitation.id;
   return (
     <tr className="border-b border-line last:border-b-0 hover:bg-tile">
       <td className={cellStyles}>{invitation.email}</td>
-      <td className={cellStyles}>{invitation.project?.name ?? MSG.NO_PROJECT}</td>
-      <td className={cellStyles}>{invitation.role ? ROLE_LABELS[invitation.role] : "-"}</td>
+      <td className={cellStyles}>
+        {invitation.project ? (
+          <>
+            {invitation.project.name}
+            {invitation.role ? <span className="text-ink-muted"> · {ROLE_LABELS[invitation.role]}</span> : null}
+          </>
+        ) : (
+          <Badge tone="accent" className="whitespace-nowrap">
+            {MSG.APP_ACCESS_ONLY}
+          </Badge>
+        )}
+      </td>
       <td className={cellStyles}>{invitation.invitedBy.name}</td>
       <td className={cellStyles}>
         <Badge tone={STATUS_TONE[invitation.status]}>{INVITATION_STATUS_LABELS[invitation.status]}</Badge>
+        {invitation.status === "PENDING" ? (
+          <p className="mt-0.5 text-body-small whitespace-nowrap text-ink-muted">{expiresIn(invitation.expiresAt)}</p>
+        ) : null}
       </td>
       <td className={cellStyles}>{daysAgo(invitation.createdAt)}</td>
       <td className={`${cellStyles} text-right`}>
@@ -42,24 +46,7 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
               ariaLabel={MSG.actionLabel(MSG.COPY_LINK, invitation.email)}
             />
           ) : null}
-          {canResend ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              aria-label={MSG.actionLabel(MSG.RESEND, invitation.email)}
-              loading={resending}
-              disabled={resend.isPending && !resending}
-              onClick={() => resend.mutate(invitation.id)}
-            >
-              {MSG.RESEND}
-            </Button>
-          ) : null}
         </div>
-        {resend.isError ? (
-          <p role="alert" className="mt-1 text-right text-body-small text-danger">
-            {resendFailureText(resend.error)}
-          </p>
-        ) : null}
       </td>
     </tr>
   );
@@ -88,7 +75,7 @@ function InvitationsSkeleton() {
   );
 }
 
-/** People screen. Super Admin only: invite a person with no project, copy the link, resend. */
+/** People screen. Super Admin only: invite a person with no project, copy the link. */
 export function People() {
   const { data: me, isPending: mePending } = useMe();
   const isSuperAdmin = me?.isSuperAdmin === true;
@@ -135,17 +122,14 @@ export function People() {
   } else {
     body = (
       <div className="overflow-x-auto rounded-12 border border-line bg-surface shadow-sm">
-        <table aria-label={MSG.LIST_LABEL} className="w-full min-w-[760px] border-collapse text-body-small">
+        <table aria-label={MSG.LIST_LABEL} className="w-full min-w-[720px] border-collapse text-body-small">
           <thead>
             <tr className="bg-surface-2 text-left text-overline text-ink-muted uppercase">
               <th scope="col" className={headCellStyles}>
                 {MSG.COL_EMAIL}
               </th>
               <th scope="col" className={headCellStyles}>
-                {MSG.COL_PROJECT}
-              </th>
-              <th scope="col" className={headCellStyles}>
-                {MSG.COL_ROLE}
+                {MSG.COL_ACCESS}
               </th>
               <th scope="col" className={headCellStyles}>
                 {MSG.COL_INVITED_BY}
@@ -181,6 +165,7 @@ export function People() {
         <h2 id="invitations-title" className="font-display text-heading-2">
           {MSG.INVITATIONS_SECTION}
         </h2>
+        <p className="-mt-1.5 text-body-small text-ink-muted">{MSG.INVITATIONS_HINT}</p>
         {body}
       </section>
     </div>

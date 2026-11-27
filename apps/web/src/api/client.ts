@@ -124,12 +124,3 @@ export async function createInvitation(body: CreateInvitationRequest): Promise<I
   });
   return readJson(res, invitationResponseSchema);
 }
-
-/** Starts 14 more days for a Pending or Expired invitation. 409 for Accepted or Revoked. */
-export async function resendInvitation(invitationId: string): Promise<InvitationResponse> {
-  const res = await fetch(
-    `${API_URL}${API_ROUTES.INVITATION_RESEND.replace(":id", encodeURIComponent(invitationId))}`,
-    { method: "POST", credentials: "include" },
-  );
-  return readJson(res, invitationResponseSchema);
-}

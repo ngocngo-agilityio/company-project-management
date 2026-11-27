@@ -7,13 +7,14 @@ export const PEOPLE_MESSAGES = {
   INVITATIONS_SECTION: "All invitations",
   LIST_LABEL: "Invitations",
   COL_EMAIL: "Email",
-  COL_PROJECT: "Project",
-  COL_ROLE: "Role",
+  COL_ACCESS: "Access",
   COL_INVITED_BY: "Invited by",
   COL_STATUS: "Status",
   COL_WHEN: "When",
   COL_ACTIONS: "Actions",
-  NO_PROJECT: "No project",
+  APP_ACCESS_ONLY: "App access only",
+  INVITATIONS_HINT:
+    "An invitation to a project gives a role in it. An invitation with no project only lets the person into the app; add them to a project later from its Members screen.",
   EMPTY: "No invitations yet",
   EMPTY_HINT: "Invite a person by their Google email, then send them the link.",
   LOAD_FAILED_TITLE: "We could not load the invitations.",
@@ -22,14 +23,10 @@ export const PEOPLE_MESSAGES = {
   COPY_LINK: "Copy link",
   COPIED: "Link copied",
   COPY_FAILED: "We could not copy the link. Select it and copy it by hand.",
-  RESEND: "Resend",
-  RESEND_FAILED_TITLE: "We could not resend the invitation.",
-  RESEND_FAILED_CONFLICT: "Only a pending invitation can be resent. The list will refresh.",
-  RESEND_FAILED_OTHER: "Check your connection and try again.",
   FORBIDDEN_TITLE: "Only the Super Admin can see this page.",
   FORBIDDEN_TEXT: "Go back to the projects you belong to.",
   BACK: "Back to projects",
-  /** "Copy link" and "Resend" with the person they act on, for screen readers. */
+  /** "Copy link" with the person it acts on, for screen readers. */
   actionLabel: (action: string, email: string) => `${action}: ${email}`,
 } as const;
 
@@ -43,8 +40,7 @@ export const INVITE_DIALOG_MESSAGES = {
   CANCEL: "Cancel",
   EMAIL_REQUIRED: "Enter an email address.",
   EMAIL_INVALID: "Enter a valid email address.",
-  FAILED_CONFLICT:
-    "This email already has an account or a pending invitation. If it is pending, use Resend in the list.",
+  FAILED_CONFLICT: "This email already has an account or a pending invitation.",
   FAILED_FORBIDDEN: "Only the Super Admin can invite people.",
   FAILED_OTHER: "We could not create the invitation. Check your connection and try again.",
   /** Shown after creating: the link to send. */

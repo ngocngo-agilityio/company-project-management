@@ -28,11 +28,11 @@ test("@real a Super Admin invites a person, sees the link and finds the invitati
 
   const row = page.getByRole("row").filter({ hasText: invited });
   await expect(row).toContainText("Pending");
-  await expect(row).toContainText("No project");
+  await expect(row).toContainText("App access only");
   await expect(row.getByRole("button", { name: `Copy link: ${invited}` })).toBeVisible();
 });
 
-test("@real inviting the same email twice is refused and Resend keeps the invitation Pending", async ({ page }) => {
+test("@real inviting the same email twice is refused", async ({ page }) => {
   await signInAsSuperAdminOnPeople(page);
   const invited = `invited-${randomUUID()}@example.com`;
 
@@ -50,11 +50,6 @@ test("@real inviting the same email twice is refused and Resend keeps the invita
   const second = await invite();
   await expect(second.getByRole("alert")).toContainText("pending invitation");
   await second.getByRole("button", { name: "Cancel" }).click();
-
-  const row = page.getByRole("row").filter({ hasText: invited });
-  await row.getByRole("button", { name: `Resend: ${invited}` }).click();
-  await expect(row).toContainText("Pending");
-  await expect(row.getByRole("button", { name: `Resend: ${invited}` })).toBeEnabled();
 });
 
 test("@real a Super Admin finds the People link in the Admin section of the menu", async ({ page }) => {
