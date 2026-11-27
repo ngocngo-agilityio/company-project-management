@@ -25,7 +25,7 @@ The target design is in [docs/plan.md](docs/plan.md). More docs:
 
 Docker is needed only for the local database (`docker compose up -d --wait`). `pnpm dev` itself uses whatever `DATABASE_URL` points at.
 
-Git hooks (husky) are installed automatically by `pnpm install`. On commit, `lint-staged` formats and lints staged files, and `commitlint` rejects messages that are not conventional commits. Do not bypass them with `--no-verify`.
+Git hooks (husky) are installed automatically by `pnpm install`. Before a push, `scripts/pre-push-e2e.mjs` runs the Playwright suite when the push changes web, backend, shared or ui code (it needs `docker compose up -d --wait`; without it only the mocked specs run). On commit, `lint-staged` formats and lints staged files, and `commitlint` rejects messages that are not conventional commits. Do not bypass them with `--no-verify`.
 
 ## 🔧 Run locally
 
@@ -100,7 +100,7 @@ If the link does not open, ask the project owner for view access. Name the frame
 
 ## 🤖 CI
 
-- [.github/workflows/ci.yml](.github/workflows/ci.yml) runs job `ci` on every pull request to `dev` and `main`: `pnpm lint`, `pnpm typecheck`, `pnpm test`. Browser (Playwright) tests are not part of CI yet.
+- [.github/workflows/ci.yml](.github/workflows/ci.yml) runs job `ci` on every pull request to `dev` and `main`: `pnpm lint`, `pnpm typecheck`, `pnpm test`. Job `e2e` runs the Playwright browser tests (`pnpm e2e`) against a throwaway Postgres; add it to the required checks once it has been stable for a few runs.
 - `ci` is a required check on `dev` and `main` (repository ruleset). A failing check blocks the merge. Keep the job name `ci`, or update the ruleset when renaming it.
 - [.github/dependabot.yml](.github/dependabot.yml) opens weekly pull requests for npm and GitHub Actions updates.
 

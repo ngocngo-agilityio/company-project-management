@@ -30,7 +30,14 @@ Follow `.claude/rules/testing.md`.
 
 ## Playwright
 
-Installed in `apps/web` (`pnpm --filter @board/web test:e2e`). Specs live in
-`apps/web/e2e/` as `<flow>.e2e.ts`; see `sign-in.e2e.ts` for the pattern (mock the API with `page.route`). Run main flows at phone,
-tablet and computer sizes. Google sign-in cannot run in CI: use a test-only login route
-behind `E2E=1`, and add a check that it is off on Render.
+Installed in `apps/web`. Run everything with `pnpm e2e` (needs `docker compose up -d --wait`; it prepares the `board_e2e`
+database and starts the backend and Vite). Specs live in `apps/web/e2e/` as `<flow>.e2e.ts`.
+
+- **Mocked spec** (default): mock the API with `page.route`; see `sign-in.e2e.ts`. It runs at 360, 768 and 1024 px wide.
+- **Real spec**: put `@real` in the test title; see `projects.e2e.ts`. It runs once at 1024 px against the real backend.
+  Sign in with `page.request.post("/api/test/login", { data: { email, isSuperAdmin: true } })` (the route exists only with
+  `E2E=1`; the server refuses `E2E=1` in production, on Render and with a database that is not local). Give each test its
+  own random email and names, and only assert on data it created, so tests can run in parallel.
+- Use a mocked spec for states the real backend cannot produce easily (errors, slow answers, empty lists).
+- Under 900 px the sidebar is a drawer: open "Open menu" before using it.
+- Both run in CI (job `e2e`) and in the pre-push hook.
