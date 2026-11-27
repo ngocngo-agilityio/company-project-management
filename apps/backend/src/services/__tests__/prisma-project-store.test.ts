@@ -77,7 +77,12 @@ describe("createPrismaProjectStore.createProject", () => {
 });
 
 describe("createPrismaProjectStore lists", () => {
-  const row = { id: "p1", name: "Site", archivedAt: null, createdAt: new Date("2026-11-27T00:00:00Z") };
+  const base = { id: "p1", name: "Site", archivedAt: null, createdAt: new Date("2026-11-27T00:00:00Z") };
+  const lan = { id: "u1", name: "Lan", avatarUrl: null };
+  /** The project as Prisma returns it with the summary select: relation counts and the member preview. */
+  const row = { ...base, _count: { memberships: 3, boards: 2 }, memberships: [{ user: lan }] };
+  /** The same project as the store hands it to the routes. */
+  const summary = { ...base, boardCount: 2, memberCount: 3, members: [lan] };
 
   it("listForUser reads only the memberships of that person and keeps the membership role", async () => {
     const membershipFindMany = vi.fn(async () => [{ role: "MEMBER", project: row }]);
@@ -86,15 +91,67 @@ describe("createPrismaProjectStore lists", () => {
     const result = await createPrismaProjectStore(db).listForUser("user-1");
 
     expect(membershipFindMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: "user-1" } }));
-    expect(result).toEqual([{ ...row, role: "MEMBER" }]);
+    expect(result).toEqual([{ ...summary, role: "MEMBER" }]);
   });
 
   it("listAll is the only unfiltered query", async () => {
     const projectFindMany = vi.fn(async () => [row]);
     const db = { project: { findMany: projectFindMany } } as unknown as PrismaClient;
 
-    await createPrismaProjectStore(db).listAll();
+    const result = await createPrismaProjectStore(db).listAll();
 
     expect(projectFindMany).toHaveBeenCalledWith(expect.not.objectContaining({ where: expect.anything() }));
+    expect(result).toEqual([summary]);
+  });
+
+  it("counts only boards that are not archived, and previews Owners first then by name, four at most", async () => {
+    const projectFindMany = vi.fn(async () => [row]);
+    const db = { project: { findMany: projectFindMany } } as unknown as PrismaClient;
+
+    await createPrismaProjectStore(db).listAll();
+
+    const [{ select }] = projectFindMany.mock.calls[0] as unknown as [{ select: Record<string, unknown> }];
+    expect(select._count).toEqual({ select: { memberships: true, boards: { where: { archivedAt: null } } } });
+    expect(select.memberships).toMatchObject({
+      take: 4,
+      orderBy: [{ role: "asc" }, { user: { name: "asc" } }],
+    });
+  });
+});
+
+describe("createPrismaProjectStore.setArchived", () => {
+  it("archives with one conditional update, only a project that is not archived yet", async () => {
+    const updateMany = vi.fn(async () => ({ count: 1 }));
+    const db = { project: { updateMany } } as unknown as PrismaClient;
+
+    const result = await createPrismaProjectStore(db).setArchived("p1", true);
+
+    expect(result).toBe("ok");
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "p1", archivedAt: null },
+      data: { archivedAt: expect.any(Date) },
+    });
+  });
+
+  it("restores only a project that is archived, clearing the date", async () => {
+    const updateMany = vi.fn(async () => ({ count: 1 }));
+    const db = { project: { updateMany } } as unknown as PrismaClient;
+
+    await createPrismaProjectStore(db).setArchived("p1", false);
+
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "p1", archivedAt: { not: null } },
+      data: { archivedAt: null },
+    });
+  });
+
+  it("tells a project already in that state from one that does not exist", async () => {
+    const updateMany = vi.fn(async () => ({ count: 0 }));
+    const findUnique = vi.fn().mockResolvedValueOnce({ id: "p1" }).mockResolvedValueOnce(null);
+    const db = { project: { updateMany, findUnique } } as unknown as PrismaClient;
+    const store = createPrismaProjectStore(db);
+
+    expect(await store.setArchived("p1", true)).toBe("unchanged");
+    expect(await store.setArchived("ghost", true)).toBe("not_found");
   });
 });

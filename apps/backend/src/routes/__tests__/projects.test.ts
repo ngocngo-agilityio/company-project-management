@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
-import { createProjectResponseSchema, projectListResponseSchema } from "@board/shared";
+import { createProjectResponseSchema, projectArchiveResponseSchema, projectListResponseSchema } from "@board/shared";
 import { makeUser, setupApp, WEB } from "./test-helpers.js";
 
 const apps: Array<{ close(): Promise<unknown> }> = [];
@@ -237,6 +237,49 @@ describe("GET /api/projects", () => {
     expect(projects[0]!.archivedAt).toBeNull();
   });
 
+  it("adds the board count, the member count, the avatar preview and zero card placeholders", async () => {
+    const ctx = setup();
+    await seedTwoProjects(ctx);
+    const alpha = ctx.projects.find((p) => p.name === "Alpha")!;
+    // Alpha already has `member` as Owner. Add a Member and an Observer: 3 members in all.
+    ctx.memberships.push(
+      { projectId: alpha.id, userId: observer.id, role: "OBSERVER" },
+      { projectId: alpha.id, userId: owner.id, role: "MEMBER" },
+    );
+    const res = await ctx.app.inject({
+      method: "GET",
+      url: "/api/projects",
+      headers: { cookie: await ctx.cookieFor(admin) },
+    });
+    const first = projectListResponseSchema.parse(res.json()).projects[0]!;
+    expect(first.name).toBe("Alpha");
+    expect(first.boardCount).toBe(1);
+    expect(first.memberCount).toBe(3);
+    // Owners first, then by name.
+    expect(first.members.map((m) => m.name)).toEqual(["Member", "Owner", "Observer"]);
+    expect(first.members[0]).toEqual({ id: member.id, name: "Member", avatarUrl: null });
+    // Placeholders until the Card model exists.
+    expect(first.openCardCount).toBe(0);
+    expect(first.overdueCardCount).toBe(0);
+  });
+
+  it("previews at most four members but counts them all", async () => {
+    const ctx = setup();
+    await seedTwoProjects(ctx);
+    const alpha = ctx.projects.find((p) => p.name === "Alpha")!;
+    for (const user of [owner, observer, loner, admin]) {
+      ctx.memberships.push({ projectId: alpha.id, userId: user.id, role: "MEMBER" });
+    }
+    const res = await ctx.app.inject({
+      method: "GET",
+      url: "/api/projects",
+      headers: { cookie: await ctx.cookieFor(admin) },
+    });
+    const first = projectListResponseSchema.parse(res.json()).projects[0]!;
+    expect(first.memberCount).toBe(5);
+    expect(first.members).toHaveLength(4);
+  });
+
   it("shows a person only the projects they belong to, with their role", async () => {
     const ctx = setup();
     await seedTwoProjects(ctx);
@@ -319,5 +362,124 @@ describe("GET /api/projects", () => {
     const res = await app.inject({ method: "GET", url: "/api/projects" });
     expect(res.statusCode).toBe(401);
     expect(res.json()).toEqual({ error: "unauthorized" });
+  });
+});
+
+describe.each([
+  { action: "archive", url: (id: string) => `/api/projects/${id}/archive` },
+  { action: "restore", url: (id: string) => `/api/projects/${id}/restore` },
+])("POST /api/projects/:id/$action", ({ action, url }) => {
+  /** A project owned by `owner`, with `member` and `observer` in it. Archived first for restore. */
+  function seed() {
+    const ctx = setup();
+    const project = {
+      id: randomUUID(),
+      name: "Site",
+      archivedAt: action === "restore" ? new Date("2026-11-10T00:00:00Z") : null,
+      createdAt: new Date(),
+    };
+    ctx.projects.push(project);
+    ctx.memberships.push(
+      { projectId: project.id, userId: owner.id, role: "OWNER" },
+      { projectId: project.id, userId: member.id, role: "MEMBER" },
+      { projectId: project.id, userId: observer.id, role: "OBSERVER" },
+    );
+    return { ctx, project };
+  }
+  const call = async (ctx: ReturnType<typeof setup>, id: string, user?: typeof admin) =>
+    ctx.app.inject({
+      method: "POST",
+      url: url(id),
+      headers: user ? { cookie: await ctx.cookieFor(user) } : {},
+    });
+
+  it("lets the Super Admin change the state and answers the new archive date", async () => {
+    const { ctx, project } = seed();
+    const res = await call(ctx, project.id, admin);
+    expect(res.statusCode).toBe(200);
+    const body = projectArchiveResponseSchema.parse(res.json());
+    expect(body.id).toBe(project.id);
+    if (action === "archive") {
+      expect(body.archivedAt).not.toBeNull();
+      expect(project.archivedAt).not.toBeNull();
+    } else {
+      expect(body.archivedAt).toBeNull();
+      expect(project.archivedAt).toBeNull();
+    }
+  });
+
+  it.each([
+    ["Owner", owner],
+    ["Member", member],
+    ["Observer", observer],
+    ["a person in no project", loner],
+  ])("refuses %s with 403 and changes nothing", async (_who, user) => {
+    const { ctx, project } = seed();
+    const before = project.archivedAt;
+    const res = await call(ctx, project.id, user);
+    expect(res.statusCode).toBe(403);
+    expect(res.json()).toEqual({ error: "forbidden" });
+    expect(project.archivedAt).toBe(before);
+  });
+
+  it("answers 401 without a session", async () => {
+    const { ctx, project } = seed();
+    const res = await call(ctx, project.id);
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("answers 400 for an id that is not a uuid", async () => {
+    const { ctx } = seed();
+    const res = await call(ctx, "not-a-uuid", admin);
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ error: "validation_error" });
+  });
+
+  it("answers 404 for a project that does not exist", async () => {
+    const { ctx } = seed();
+    const res = await call(ctx, randomUUID(), admin);
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "not_found" });
+  });
+
+  it("answers 409 when the project is already in that state", async () => {
+    const { ctx, project } = seed();
+    expect((await call(ctx, project.id, admin)).statusCode).toBe(200);
+    const again = await call(ctx, project.id, admin);
+    expect(again.statusCode).toBe(409);
+    expect(again.json()).toMatchObject({ error: "conflict" });
+  });
+});
+
+describe("archive and the project list", () => {
+  it("shows an archived project with its date to the Super Admin, and restore clears it", async () => {
+    const ctx = setup();
+    const created = await ctx.app.inject({
+      method: "POST",
+      url: "/api/projects",
+      headers: { cookie: await ctx.cookieFor(admin) },
+      payload: { name: "Site", ownerId: owner.id },
+    });
+    const { id } = createProjectResponseSchema.parse(created.json());
+    const list = async () => {
+      const res = await ctx.app.inject({
+        method: "GET",
+        url: "/api/projects",
+        headers: { cookie: await ctx.cookieFor(admin) },
+      });
+      return projectListResponseSchema.parse(res.json()).projects[0]!.archivedAt;
+    };
+    await ctx.app.inject({
+      method: "POST",
+      url: `/api/projects/${id}/archive`,
+      headers: { cookie: await ctx.cookieFor(admin) },
+    });
+    expect(await list()).not.toBeNull();
+    await ctx.app.inject({
+      method: "POST",
+      url: `/api/projects/${id}/restore`,
+      headers: { cookie: await ctx.cookieFor(admin) },
+    });
+    expect(await list()).toBeNull();
   });
 });

@@ -6,6 +6,8 @@ export {
   createProjectRequestSchema,
   createProjectResponseSchema,
   projectListResponseSchema,
+  projectIdParamSchema,
+  projectArchiveResponseSchema,
   peopleListQuerySchema,
   peopleListResponseSchema,
   type MeResponse,
@@ -13,6 +15,8 @@ export {
   type CreateProjectRequest,
   type CreateProjectResponse,
   type ProjectListResponse,
+  type ProjectIdParam,
+  type ProjectArchiveResponse,
   type PeopleListQuery,
   type PeopleListResponse,
 } from "./types/index.js";

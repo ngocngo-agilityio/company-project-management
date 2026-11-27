@@ -1,15 +1,12 @@
 import { WEB_ROUTES } from "@board/shared";
-import { Avatar, Button, Dialog, DialogContent, DialogTrigger, Logo } from "@board/ui";
-import { FolderKanban, LogOut, SquareCheckBig, Users, type LucideIcon } from "lucide-react";
+import { Avatar, Button, Logo } from "@board/ui";
+import { LayoutGrid, LogOut, type LucideIcon } from "lucide-react";
 import { NavLink } from "react-router";
 import { useLogout, useMe } from "../api";
 import { SIGN_OUT_FAILED_MESSAGE } from "../constants";
-import { ApiStatus } from "./ApiStatus";
 
 const NAV_ITEMS: { to: string; label: string; icon: LucideIcon }[] = [
-  { to: WEB_ROUTES.PROJECTS, label: "Projects", icon: FolderKanban },
-  { to: WEB_ROUTES.MY_CARDS, label: "My cards", icon: SquareCheckBig },
-  { to: WEB_ROUTES.PEOPLE, label: "People", icon: Users },
+  { to: WEB_ROUTES.PROJECTS, label: "Projects", icon: LayoutGrid },
 ];
 
 const navLinkStyles =
@@ -35,15 +32,6 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
       <div className="mt-auto flex flex-col items-start gap-2">
-        <ApiStatus />
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="min-h-11 min-[900px]:min-h-9">
-              About
-            </Button>
-          </DialogTrigger>
-          <DialogContent title="Company Board" description="Internal app to manage company projects." />
-        </Dialog>
         <div className="flex w-full items-center gap-2.5 rounded-12 border border-line bg-surface-2 p-2.5">
           <Avatar name={me?.name ?? "Guest"} size={34} />
           <div className="min-w-0">

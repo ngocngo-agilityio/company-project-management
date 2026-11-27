@@ -48,27 +48,16 @@ describe("routing", () => {
     expect(router.state.location.pathname).toBe("/projects");
   });
 
-  it.each([
-    ["/my-cards", "My cards"],
-    ["/people", "People"],
-  ])("renders %s with its title", async (path, title) => {
-    renderAt(path);
-    expect(await screen.findByRole("heading", { level: 1, name: title })).toBeInTheDocument();
-  });
-
   it("shows a not-found page for unknown paths", async () => {
     renderAt("/nope");
     expect(await screen.findByRole("heading", { level: 1, name: "Page not found" })).toBeInTheDocument();
   });
 
-  it("marks the current nav item and navigates", async () => {
-    const user = userEvent.setup();
+  it("marks the current nav item and links only to screens that exist", async () => {
     await renderPrivateAt("/projects");
     const nav = screen.getAllByRole("navigation", { name: "Main" })[0]!;
     expect(within(nav).getByRole("link", { name: "Projects" })).toHaveAttribute("aria-current", "page");
-    await user.click(within(nav).getByRole("link", { name: "People" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "People" })).toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: "People" })).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getAllByRole("link")).toHaveLength(1);
   });
 });
 
@@ -82,8 +71,7 @@ describe("drawer", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Open menu" }));
     const drawer = await screen.findByRole("dialog", { name: "Menu" });
-    await user.click(within(drawer).getByRole("link", { name: "My cards" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "My cards" })).toBeInTheDocument();
+    await user.click(within(drawer).getByRole("link", { name: "Projects" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -93,20 +81,6 @@ describe("drawer", () => {
     await user.click(screen.getByRole("button", { name: "Open menu" }));
     await screen.findByRole("dialog", { name: "Menu" });
     await user.keyboard("{Escape}");
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-});
-
-describe("About dialog", () => {
-  beforeEach(mockSignedIn);
-  afterEach(() => vi.unstubAllGlobals());
-
-  it("opens and closes", async () => {
-    const user = userEvent.setup();
-    await renderPrivateAt("/projects");
-    await user.click(screen.getAllByRole("button", { name: "About" })[0]!);
-    expect(await screen.findByRole("dialog", { name: "Company Board" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

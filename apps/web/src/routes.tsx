@@ -1,13 +1,11 @@
 import { WEB_ROUTES } from "@board/shared";
 import { Navigate, type RouteObject } from "react-router";
-import { AppLayout } from "./components";
+import { AppLayout, NotFound } from "./components";
 import type { RouteHandle } from "./types";
 import { RequireAuth } from "./components";
+import { ProjectBoard } from "./pages/ProjectBoard";
+import { Projects } from "./pages/Projects";
 import { SignIn } from "./pages/SignIn";
-
-function Placeholder({ text }: { text: string }) {
-  return <p className="text-body text-ink-muted">{text}</p>;
-}
 
 /** React Router child routes have no leading slash. */
 const relative = (path: string) => path.replace(/^\//, "");
@@ -29,19 +27,14 @@ export const appRoutes: RouteObject[] = [
           {
             path: relative(WEB_ROUTES.PROJECTS),
             handle: handle("Projects"),
-            element: <Placeholder text="Your projects will appear here." />,
+            element: <Projects />,
           },
           {
-            path: relative(WEB_ROUTES.MY_CARDS),
-            handle: handle("My cards"),
-            element: <Placeholder text="Cards assigned to you will appear here." />,
+            path: relative(WEB_ROUTES.PROJECT),
+            handle: handle("Project"),
+            element: <ProjectBoard />,
           },
-          {
-            path: relative(WEB_ROUTES.PEOPLE),
-            handle: handle("People"),
-            element: <Placeholder text="People in your workspace will appear here." />,
-          },
-          { path: "*", handle: handle("Page not found"), element: <Placeholder text="This page does not exist." /> },
+          { path: "*", handle: handle("Page not found"), element: <NotFound /> },
         ],
       },
     ],

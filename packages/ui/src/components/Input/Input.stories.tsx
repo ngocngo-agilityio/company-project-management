@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent } from "storybook/test";
 import { Input } from "./Input";
 
 const meta = {
@@ -15,3 +16,18 @@ export const Default: Story = {};
 export const Filled: Story = { args: { defaultValue: "Website redesign" } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Invalid: Story = { args: { invalid: true, defaultValue: "" } };
+
+/** Focus is the accent border plus a soft ring. The checker scans the focused field. */
+export const Focused: Story = {
+  play: async ({ canvas }) => {
+    await userEvent.tab();
+    await expect(canvas.getByRole("textbox")).toHaveFocus();
+  },
+};
+export const InvalidFocused: Story = {
+  args: { invalid: true },
+  play: async ({ canvas }) => {
+    await userEvent.tab();
+    await expect(canvas.getByRole("textbox")).toHaveFocus();
+  },
+};

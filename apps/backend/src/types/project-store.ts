@@ -8,8 +8,24 @@ export interface StoredProject {
   createdAt: Date;
 }
 
+/** One member shown as an avatar on a project card. */
+export interface ProjectMemberPreview {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+/** A project row with what the list shows: counts and the first few members. */
+export interface StoredProjectSummary extends StoredProject {
+  /** Boards that are not archived. */
+  boardCount: number;
+  memberCount: number;
+  /** Owners first, then by name, at most `PROJECT_MEMBER_PREVIEW_MAX`. */
+  members: ProjectMemberPreview[];
+}
+
 /** A project the person belongs to, with their membership role there. */
-export interface StoredProjectWithRole extends StoredProject {
+export interface StoredProjectWithRole extends StoredProjectSummary {
   role: MembershipRole;
 }
 
@@ -32,7 +48,12 @@ export interface ProjectStore {
    */
   createProject(input: { name: string; ownerId: string }): Promise<CreatedProject | null>;
   /** Every project (for the Super Admin). */
-  listAll(): Promise<StoredProject[]>;
+  listAll(): Promise<StoredProjectSummary[]>;
+  /**
+   * Sets or clears `archivedAt`. `unchanged` means the project is already in that state (archive of an
+   * archived project, restore of an active one); `not_found` means no such project. Nothing is written then.
+   */
+  setArchived(id: string, archived: boolean): Promise<"ok" | "not_found" | "unchanged">;
   /** The projects the person is a member of. */
   listForUser(userId: string): Promise<StoredProjectWithRole[]>;
 }
