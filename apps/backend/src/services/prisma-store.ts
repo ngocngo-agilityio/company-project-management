@@ -25,10 +25,6 @@ export function createPrismaAuthStore(db: PrismaClient): AuthStore {
       const count = await db.invitation.count({ where: { email, status: "PENDING", expiresAt: { gt: now } } });
       return count > 0;
     },
-    async hasActiveMembership(userId) {
-      const count = await db.membership.count({ where: { userId, project: { archivedAt: null } } });
-      return count > 0;
-    },
     admit(input) {
       return db.$transaction(async (tx) => {
         // Claim each invitation with a conditional update: a parallel sign-in can win a row only once.
@@ -45,10 +41,9 @@ export function createPrismaAuthStore(db: PrismaClient): AuthStore {
           if (count === 1) won.push(invitation);
         }
         if (!input.isFirstSuperAdmin && won.length === 0) {
-          const member = input.userId
-            ? await tx.membership.count({ where: { userId: input.userId, project: { archivedAt: null } } })
-            : 0;
-          if (member === 0) return null;
+          // No invitation won: only a person with an account that is not deactivated may enter.
+          const active = input.userId ? await tx.user.count({ where: { id: input.userId, deactivatedAt: null } }) : 0;
+          if (active === 0) return null;
         }
         const profile = { googleId: input.googleId, name: input.name, avatarUrl: input.avatarUrl };
         const user = input.userId
@@ -57,12 +52,11 @@ export function createPrismaAuthStore(db: PrismaClient): AuthStore {
               data: { ...profile, email: input.email, isSuperAdmin: input.isFirstSuperAdmin },
               select: userSelect,
             });
-        if (won.length > 0) {
-          await tx.membership.createMany({
-            data: won.map(({ projectId, role }) => ({ projectId, role, userId: user.id })),
-            skipDuplicates: true,
-          });
-        }
+        // An invitation with no project (no role) gives access to the app only: no membership.
+        const memberships = won.flatMap(({ projectId, role }) =>
+          projectId && role ? [{ projectId, role, userId: user.id }] : [],
+        );
+        if (memberships.length > 0) await tx.membership.createMany({ data: memberships, skipDuplicates: true });
         return user;
       });
     },

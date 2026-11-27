@@ -18,13 +18,12 @@ const user = (over: Partial<StoredUser> = {}): StoredUser => ({
 });
 
 /**
- * Only the two reads the gate uses. `pending` is what the database answers for "an unexpired Pending
+ * Only the read the gate uses. `pending` is what the database answers for "an unexpired Pending
  * invitation": an expired invitation is `false` here, because the store filters on `expiresAt > now`.
  */
-const store = ({ pending = false, member = false } = {}) =>
+const store = ({ pending = false } = {}) =>
   ({
     hasPendingInvitation: async () => pending,
-    hasActiveMembership: async () => member,
   }) as unknown as AuthStore;
 
 interface Setup {
@@ -33,12 +32,11 @@ interface Setup {
   email?: string;
   superAdminEmail?: string | undefined;
   pending?: boolean;
-  member?: boolean;
 }
 
 const run = (setup: Setup) =>
   evaluateGate({
-    store: store({ pending: setup.pending, member: setup.member }),
+    store: store({ pending: setup.pending }),
     user: setup.user ?? null,
     googleId: setup.googleId ?? "google-1",
     email: setup.email ?? "person@example.com",
@@ -56,8 +54,9 @@ describe("evaluateGate: who gets in", () => {
     expect(await run({ pending: true })).toEqual({ allowed: true, isFirstSuperAdmin: false });
   });
 
-  it("lets in a member of an active project", async () => {
-    expect(await run({ user: user(), member: true })).toEqual({ allowed: true, isFirstSuperAdmin: false });
+  it("lets in a person with an account who is not deactivated, with no project and no Pending invitation", async () => {
+    // Someone whose invitation was Accepted earlier and who has not been added to a project yet.
+    expect(await run({ user: user() })).toEqual({ allowed: true, isFirstSuperAdmin: false });
   });
 });
 
@@ -70,13 +69,9 @@ describe("evaluateGate: who is refused", () => {
     expect(await run({})).toEqual({ allowed: false, code: SIGN_IN_ERROR.NOT_INVITED });
   });
 
-  it("refuses a known person who is in no active project and has no invitation", async () => {
-    expect(await run({ user: user() })).toEqual({ allowed: false, code: SIGN_IN_ERROR.NOT_INVITED });
-  });
-
   it("refuses a deactivated person, even the Super Admin email and a Pending invitation", async () => {
     const gone = user({ email: SUPER_ADMIN_EMAIL, deactivatedAt: new Date("2026-11-01T00:00:00.000Z") });
-    expect(await run({ user: gone, email: SUPER_ADMIN_EMAIL, pending: true, member: true })).toEqual({
+    expect(await run({ user: gone, email: SUPER_ADMIN_EMAIL, pending: true })).toEqual({
       allowed: false,
       code: SIGN_IN_ERROR.DEACTIVATED,
     });
@@ -84,7 +79,7 @@ describe("evaluateGate: who is refused", () => {
 
   it("refuses an email already linked to another Google account", async () => {
     const linked = user({ googleId: "google-other" });
-    expect(await run({ user: linked, googleId: "google-1", pending: true, member: true })).toEqual({
+    expect(await run({ user: linked, googleId: "google-1", pending: true })).toEqual({
       allowed: false,
       code: SIGN_IN_ERROR.NOT_INVITED,
     });

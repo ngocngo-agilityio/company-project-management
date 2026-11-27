@@ -8,3 +8,6 @@ export * from "./people-list-response.js";
 export * from "./test-login-request.js";
 export * from "./project-id-param.js";
 export * from "./project-archive-response.js";
+export * from "./create-invitation-request.js";
+export * from "./invitation-response.js";
+export * from "./invitation-id-param.js";

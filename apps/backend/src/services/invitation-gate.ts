@@ -18,7 +18,8 @@ interface GateInput {
 /**
  * Decides whether a person with a verified Google email may sign in. Reads only; writes nothing.
  * Order: Inactive, then a Google account mismatch, then the three groups let in:
- * the first Super Admin, an unexpired Pending invitation, a member of a project.
+ * the first Super Admin, an unexpired Pending invitation, a person with an account that is not deactivated
+ * (a project member, or someone whose invitation was Accepted and who has no project).
  */
 export async function evaluateGate({
   store,
@@ -35,6 +36,8 @@ export async function evaluateGate({
   const isFirstSuperAdmin = superAdminEmail !== undefined && email === superAdminEmail;
   if (isFirstSuperAdmin) return { allowed: true, isFirstSuperAdmin };
   if (await store.hasPendingInvitation(email, now)) return { allowed: true, isFirstSuperAdmin };
-  if (user && (await store.hasActiveMembership(user.id))) return { allowed: true, isFirstSuperAdmin };
+  // Any other person with an account who is not deactivated (refused above): a project member, or someone
+  // whose invitation was Accepted and who has no project yet.
+  if (user) return { allowed: true, isFirstSuperAdmin };
   return { allowed: false, code: SIGN_IN_ERROR.NOT_INVITED };
 }

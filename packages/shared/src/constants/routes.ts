@@ -16,6 +16,9 @@ export const API_ROUTES = {
   PROJECT_ARCHIVE: "/api/projects/:id/archive",
   PROJECT_RESTORE: "/api/projects/:id/restore",
   PEOPLE: "/api/people",
+  /** `GET` lists, `POST` creates an invitation that has no project. Super Admin only. */
+  INVITATIONS: "/api/invitations",
+  INVITATION_RESEND: "/api/invitations/:id/resend",
   /** Exists only when the backend runs with `E2E=1`. Never on Render. */
   TEST_LOGIN: "/api/test/login",
   GOOGLE_SIGN_IN: "/auth/google",

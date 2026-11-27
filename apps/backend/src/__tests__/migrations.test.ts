@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 // Indexes Prisma cannot express in schema.prisma. `prisma migrate dev` sees them as drift and
 // adds a DROP INDEX to the next migration: delete that line by hand before committing.
-const HAND_WRITTEN_INDEXES = ["invitation_project_id_email_pending_key"];
+const HAND_WRITTEN_INDEXES = ["invitation_project_id_email_pending_key", "invitation_email_account_pending_key"];
 
 const dir = new URL("../../prisma/migrations/", import.meta.url);
 const migrations = readdirSync(dir, { withFileTypes: true })
@@ -21,7 +21,7 @@ describe("hand-written indexes", () => {
 });
 
 // CHECK constraints Prisma cannot express in schema.prisma (it ignores them, so no drift).
-const HAND_WRITTEN_CHECKS = ["company_setting_single_row"];
+const HAND_WRITTEN_CHECKS = ["company_setting_single_row", "invitation_project_and_role_together"];
 
 describe("hand-written check constraints", () => {
   it.each(HAND_WRITTEN_CHECKS)("%s is added and never dropped", (constraint) => {
