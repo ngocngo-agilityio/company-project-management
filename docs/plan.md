@@ -66,7 +66,8 @@ M1 week 1, M2 week 2, M3 week 3, M4 week 4. Each sprint ends with a demo: M1 Pro
 ## Rules that shape the code
 
 - **Invitations:** Pending, Accepted, Expired or Revoked. Expire after 14 days; resend starts 14 more. Accepted when the person signs in with Google using that email (the link holds no secret). Existing accounts are added at once.
-- **Sign-in gate:** only the first Super Admin (email from env), people with a valid Pending invitation, and members of at least one project. A person with no project and no invitation is Inactive.
+- **Account invitation:** the Super Admin can invite a person to the app with no project (a copied link, no role). When that person signs in with Google using that email, the invitation is Accepted and they stay active with no project until the Super Admin deactivates them. Only the Super Admin creates and resends it. An email that already has an active account is refused; a deactivated person is reactivated at once.
+- **Sign-in gate:** only the first Super Admin (email from env), people with a valid Pending invitation, and people whose account is active (a project member, or someone whose invitation was Accepted and who has no project yet). Inactive means deactivated. Removing a person from their last project deactivates them.
 - **Projects:** several Owners allowed; the last Owner cannot leave or be removed. A removed person is taken off their cards; history keeps their name.
 - **Lists:** a new board starts with To do, In progress, Done. Done is marked Finished by default. A card in a Finished list is never overdue.
 - **Cards:** title required, max 200 chars; description plain text; assignees only from the project; one due date in the company time zone; priority Low/Medium/High (default Medium); labels from a fixed set of colours, named by the Owner; checklist steps. No estimates, sub-cards or card links.

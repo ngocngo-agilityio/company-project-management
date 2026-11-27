@@ -10,6 +10,7 @@ import type { Role } from "./roles.js";
 export const PERMISSIONS = {
   "people:view": ["SUPER_ADMIN"],
   "person:deactivate": ["SUPER_ADMIN"],
+  "person:invite": ["SUPER_ADMIN"],
   "superadmin:invite": ["SUPER_ADMIN"],
   "project:create": ["SUPER_ADMIN"],
   "project:update": ["SUPER_ADMIN"],

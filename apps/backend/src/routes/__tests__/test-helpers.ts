@@ -5,8 +5,10 @@ import type { GoogleAuth } from "../../services/google.js";
 import type {
   AuthStore,
   CreatedProject,
+  InvitationStore,
   PeopleStore,
   ProjectStore,
+  StoredInvitation,
   StoredProject,
   StoredProjectSummary,
   StoredProjectWithRole,
@@ -14,7 +16,7 @@ import type {
 } from "../../types/index.js";
 
 export const WEB = "https://web.example.com";
-const NOW = new Date("2026-11-27T08:00:00.000Z");
+export const NOW = new Date("2026-11-27T08:00:00.000Z");
 
 export function makeUser(over: Partial<StoredUser> = {}): StoredUser {
   return {
@@ -39,7 +41,6 @@ function makeAuthStore(users: StoredUser[]) {
     findUser: unused,
     updateProfile: unused,
     hasPendingInvitation: unused,
-    hasActiveMembership: unused,
     admit: unused,
     async createSession(userId) {
       const id = randomUUID();
@@ -139,6 +140,55 @@ export function makePeopleStore(users: StoredUser[]): PeopleStore {
   };
 }
 
+/**
+ * In-memory InvitationStore with the same rules as the database one: an active person is refused, a
+ * Pending account invitation (even past its date) blocks a new one, a deactivated person is reactivated.
+ */
+export function makeInvitationStore(users: StoredUser[]) {
+  const rows: StoredInvitation[] = [];
+  const store: InvitationStore = {
+    async list() {
+      return [...rows].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    },
+    async createAccountInvitation({ email, invitedById, now, expiresAt }) {
+      const person = users.find((u) => u.email === email);
+      if (person && !person.deactivatedAt) return { result: "active_user" };
+      const inviter = users.find((u) => u.id === invitedById)!;
+      const base = {
+        id: randomUUID(),
+        email,
+        project: null,
+        role: null,
+        invitedBy: { id: inviter.id, name: inviter.name },
+      };
+      if (person) {
+        person.deactivatedAt = null;
+        rows
+          .filter((r) => r.email === email && !r.project && r.status === "PENDING")
+          .forEach((r) => (r.status = "ACCEPTED"));
+        const invitation: StoredInvitation = { ...base, status: "ACCEPTED", createdAt: now, expiresAt };
+        rows.push(invitation);
+        return { result: "reactivated", invitation };
+      }
+      if (rows.some((r) => r.email === email && !r.project && r.status === "PENDING")) {
+        return { result: "pending_exists" };
+      }
+      const invitation: StoredInvitation = { ...base, status: "PENDING", createdAt: now, expiresAt };
+      rows.push(invitation);
+      return { result: "created", invitation };
+    },
+    async resend({ id, expiresAt }) {
+      const row = rows.find((r) => r.id === id);
+      if (!row) return { result: "not_found" };
+      if (row.status !== "PENDING" && row.status !== "EXPIRED") return { result: "not_resendable" };
+      row.status = "PENDING";
+      row.expiresAt = expiresAt;
+      return { result: "ok", invitation: row };
+    },
+  };
+  return { store, rows };
+}
+
 const noGoogle: GoogleAuth = {
   async register() {},
   async fetchProfile() {
@@ -150,12 +200,14 @@ const noGoogle: GoogleAuth = {
 export function setupApp(users: StoredUser[], opts: { failWith?: Error } = {}) {
   const { store, sessions } = makeAuthStore(users);
   const projectData = makeProjectStore(users, opts);
+  const invitationData = makeInvitationStore(users);
   const app = buildApp({
     webOrigin: WEB,
     auth: {
       store,
       projects: projectData.store,
       people: makePeopleStore(users),
+      invitations: invitationData.store,
       google: noGoogle,
       crossSite: true,
       now: () => NOW,
@@ -165,5 +217,5 @@ export function setupApp(users: StoredUser[], opts: { failWith?: Error } = {}) {
     const { id } = await store.createSession(user.id, NOW);
     return `${SESSION_COOKIE_NAME}=${id}`;
   }
-  return { app, sessions, cookieFor, ...projectData };
+  return { app, sessions, cookieFor, invitationRows: invitationData.rows, ...projectData };
 }

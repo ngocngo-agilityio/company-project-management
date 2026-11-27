@@ -8,6 +8,7 @@ const [SA, OW, ME, OB] = ROLES;
 const EXPECTED: Record<Action, readonly Role[]> = {
   "people:view": [SA],
   "person:deactivate": [SA],
+  "person:invite": [SA],
   "superadmin:invite": [SA],
   "project:create": [SA],
   "project:update": [SA],
@@ -45,6 +46,7 @@ const ROWS = (Object.entries(EXPECTED) as Array<[Action, readonly Role[]]>).map(
 const DOC_MATRIX: Record<string, readonly [string, string, string, string]> = {
   "people:view": ["✓", "-", "-", "-"],
   "person:deactivate": ["✓", "-", "-", "-"],
+  "person:invite": ["✓", "-", "-", "-"],
   "superadmin:invite": ["✓", "-", "-", "-"],
   "project:create": ["✓", "-", "-", "-"],
   "project:update": ["✓", "-", "-", "-"],

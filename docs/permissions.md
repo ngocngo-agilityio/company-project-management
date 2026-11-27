@@ -16,6 +16,7 @@ Keys are `resource:action`, implemented in `packages/shared/src/constants/permis
 | ----------------------------------------------------------------------------- | :---------: | :---: | :----: | :------: |
 | `people:view` (People screen)                                                 |      ✓      |   -   |   -    |    -     |
 | `person:deactivate`                                                           |      ✓      |   -   |   -    |    -     |
+| `person:invite` (invite a person to the app, with no project; resend)         |      ✓      |   -   |   -    |    -     |
 | `superadmin:invite`                                                           |      ✓      |   -   |   -    |    -     |
 | `project:create` (and choose its Owner)                                       |      ✓      |   -   |   -    |    -     |
 | `project:update` (rename)                                                     |      ✓      |   -   |   -    |    -     |

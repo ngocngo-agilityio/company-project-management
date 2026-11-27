@@ -21,8 +21,9 @@ import { z } from "zod";
 import { SESSION_TTL_MS } from "../constants/index.js";
 import type { GoogleAuth } from "../services/google.js";
 import { evaluateGate } from "../services/invitation-gate.js";
-import type { AuthStore, PeopleStore, ProjectStore, StoredUser } from "../types/index.js";
+import type { AuthStore, InvitationStore, PeopleStore, ProjectStore, StoredUser } from "../types/index.js";
 import { validationMessage } from "../utils/index.js";
+import { invitationsPlugin } from "./invitations.js";
 import { peoplePlugin } from "./people.js";
 import { projectsPlugin } from "./projects.js";
 
@@ -43,6 +44,8 @@ export interface AuthOptions {
   projects?: ProjectStore;
   /** People route. Left out in tests that do not need it. */
   people?: PeopleStore;
+  /** Invitation routes (invite a person with no project, resend). Left out in tests that do not need them. */
+  invitations?: InvitationStore;
   google: GoogleAuth;
   /** Where the browser goes after sign-in. Unset: relative links (same origin). */
   webOrigin?: string | undefined;
@@ -280,4 +283,5 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   // Registered here, not at the app root, so the access hook above covers them.
   if (opts.projects) await app.register(projectsPlugin, { store: opts.projects, currentUser });
   if (opts.people) await app.register(peoplePlugin, { store: opts.people, currentUser });
+  if (opts.invitations) await app.register(invitationsPlugin, { store: opts.invitations, currentUser, now });
 };

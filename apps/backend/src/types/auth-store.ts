@@ -39,11 +39,9 @@ export interface AuthStore {
   ): Promise<StoredUser>;
   /** true when the lowercase email has a Pending invitation that has not expired at `now`. */
   hasPendingInvitation(email: string, now: Date): Promise<boolean>;
-  /** true when the person is a member of at least one project that is not archived. */
-  hasActiveMembership(userId: string): Promise<boolean>;
   /**
-   * One transaction: accepts every unexpired Pending invitation of the email, creates the memberships,
-   * creates the person if needed, saves the Google profile. Returns null, having written nothing,
+   * One transaction: accepts every unexpired Pending invitation of the email, creates the memberships
+   * (none for an invitation with no project), creates the person if needed, saves the Google profile. Returns null, having written nothing,
    * when the person is no longer allowed in (for example a parallel sign-in used the invitation first).
    */
   admit(input: AdmitInput): Promise<StoredUser | null>;

@@ -37,9 +37,6 @@ function makeStore(users: StoredUser[]) {
     async hasPendingInvitation() {
       return false;
     },
-    async hasActiveMembership() {
-      return false;
-    },
     async admit(input) {
       const existing = users.find((u) => u.id === input.userId);
       if (existing) {
