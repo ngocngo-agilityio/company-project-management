@@ -15,4 +15,5 @@ export {
 } from "./components/Dialog/Dialog";
 export { Input, type InputProps } from "./components/Input/Input";
 export { Logo, type LogoProps } from "./components/Logo/Logo";
+export { PersonPicker, type PersonOption, type PersonPickerProps } from "./components/PersonPicker/PersonPicker";
 export { Skeleton, type SkeletonProps } from "./components/Skeleton/Skeleton";

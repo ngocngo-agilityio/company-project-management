@@ -1,8 +1,37 @@
-import { DEFAULT_BOARD_NAME, DEFAULT_LISTS } from "@board/shared";
-import type { PrismaClient } from "../generated/prisma/client.js";
-import type { ProjectStore } from "../types/index.js";
+import { DEFAULT_BOARD_NAME, DEFAULT_LISTS, PROJECT_MEMBER_PREVIEW_MAX } from "@board/shared";
+import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
+import type { ProjectStore, StoredProjectSummary } from "../types/index.js";
 
 const projectSelect = { id: true, name: true, archivedAt: true, createdAt: true } as const;
+
+/** What the list shows: the project, its counts and the first few members (Owners first, then by name). */
+const summarySelect = {
+  ...projectSelect,
+  _count: { select: { memberships: true, boards: { where: { archivedAt: null } } } },
+  memberships: {
+    take: PROJECT_MEMBER_PREVIEW_MAX,
+    orderBy: [{ role: "asc" }, { user: { name: "asc" } }],
+    select: { user: { select: { id: true, name: true, avatarUrl: true } } },
+  },
+} satisfies Prisma.ProjectSelect;
+
+type SummaryRow = {
+  id: string;
+  name: string;
+  archivedAt: Date | null;
+  createdAt: Date;
+  _count: { memberships: number; boards: number };
+  memberships: { user: { id: string; name: string; avatarUrl: string | null } }[];
+};
+
+function toSummary({ _count, memberships, ...project }: SummaryRow): StoredProjectSummary {
+  return {
+    ...project,
+    boardCount: _count.boards,
+    memberCount: _count.memberships,
+    members: memberships.map(({ user }) => user),
+  };
+}
 
 export function createPrismaProjectStore(db: PrismaClient): ProjectStore {
   return {
@@ -34,15 +63,26 @@ export function createPrismaProjectStore(db: PrismaClient): ProjectStore {
         { timeout: 15_000 },
       );
     },
-    listAll() {
-      return db.project.findMany({ select: projectSelect, orderBy: { name: "asc" } });
+    async listAll() {
+      const rows = await db.project.findMany({ select: summarySelect, orderBy: { name: "asc" } });
+      return rows.map(toSummary);
+    },
+    async setArchived(id, archived) {
+      // One conditional UPDATE, so two admins pressing Archive together cannot both "succeed".
+      const { count } = await db.project.updateMany({
+        where: { id, archivedAt: archived ? null : { not: null } },
+        data: { archivedAt: archived ? new Date() : null },
+      });
+      if (count > 0) return "ok";
+      const exists = await db.project.findUnique({ where: { id }, select: { id: true } });
+      return exists ? "unchanged" : "not_found";
     },
     async listForUser(userId) {
       const rows = await db.membership.findMany({
         where: { userId },
-        select: { role: true, project: { select: projectSelect } },
+        select: { role: true, project: { select: summarySelect } },
       });
-      return rows.map(({ role, project }) => ({ ...project, role }));
+      return rows.map(({ role, project }) => ({ ...toSummary(project), role }));
     },
   };
 }

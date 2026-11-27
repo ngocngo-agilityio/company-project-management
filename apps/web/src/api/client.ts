@@ -1,10 +1,19 @@
 import {
   API_ROUTES,
   HTTP_STATUS,
+  createProjectResponseSchema,
+  projectArchiveResponseSchema,
   healthResponseSchema,
   meResponseSchema,
+  peopleListResponseSchema,
+  projectListResponseSchema,
+  type CreateProjectRequest,
+  type CreateProjectResponse,
+  type ProjectArchiveResponse,
   type HealthResponse,
   type MeResponse,
+  type PeopleListResponse,
+  type ProjectListResponse,
 } from "@board/shared";
 import { API_URL } from "../constants";
 import { WAKE_UP_TIMEOUT_MS } from "../constants";
@@ -35,4 +44,61 @@ export async function fetchMe(): Promise<MeResponse | null> {
   if (res.status === HTTP_STATUS.UNAUTHORIZED) return null;
   if (!res.ok) throw new Error(`API answered ${res.status}`);
   return meResponseSchema.parse(await res.json());
+}
+
+/** An API call the server answered with an error status (other than 401, which is `UnauthorizedError`). */
+export class ApiRequestError extends Error {
+  readonly status: number;
+  constructor(status: number) {
+    super(`API answered ${status}`);
+    this.name = "ApiRequestError";
+    this.status = status;
+  }
+}
+
+async function readJson<T>(res: Response, schema: { parse: (data: unknown) => T }): Promise<T> {
+  if (res.status === HTTP_STATUS.UNAUTHORIZED) throw new UnauthorizedError();
+  if (!res.ok) throw new ApiRequestError(res.status);
+  return schema.parse(await res.json());
+}
+
+/** The projects the signed-in person belongs to (all of them for the Super Admin). */
+export async function fetchProjects(): Promise<ProjectListResponse> {
+  const res = await fetch(`${API_URL}${API_ROUTES.PROJECTS}`, { credentials: "include" });
+  return readJson(res, projectListResponseSchema);
+}
+
+/** People who can be picked as Owner: the Super Admin only; deactivated people are left out. */
+export async function fetchActivePeople(): Promise<PeopleListResponse> {
+  const res = await fetch(`${API_URL}${API_ROUTES.PEOPLE}?status=active`, { credentials: "include" });
+  return readJson(res, peopleListResponseSchema);
+}
+
+/** Creates a project with its first board. Super Admin only (the server answers 403 to anyone else). */
+export async function createProject(body: CreateProjectRequest): Promise<CreateProjectResponse> {
+  const res = await fetch(`${API_URL}${API_ROUTES.PROJECTS}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return readJson(res, createProjectResponseSchema);
+}
+
+async function postProjectAction(route: string, projectId: string): Promise<ProjectArchiveResponse> {
+  const res = await fetch(`${API_URL}${route.replace(":id", encodeURIComponent(projectId))}`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return readJson(res, projectArchiveResponseSchema);
+}
+
+/** Marks a project archived (read-only for everyone). Super Admin only. */
+export function archiveProject(projectId: string): Promise<ProjectArchiveResponse> {
+  return postProjectAction(API_ROUTES.PROJECT_ARCHIVE, projectId);
+}
+
+/** Brings an archived project back. Super Admin only. */
+export function restoreProject(projectId: string): Promise<ProjectArchiveResponse> {
+  return postProjectAction(API_ROUTES.PROJECT_RESTORE, projectId);
 }

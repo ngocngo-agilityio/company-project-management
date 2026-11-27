@@ -3,6 +3,7 @@ export const WEB_ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   PROJECTS: "/projects",
+  PROJECT: "/projects/:projectId",
   MY_CARDS: "/my-cards",
   PEOPLE: "/people",
 } as const;
@@ -12,6 +13,8 @@ export const API_ROUTES = {
   HEALTH: "/health",
   ME: "/api/me",
   PROJECTS: "/api/projects",
+  PROJECT_ARCHIVE: "/api/projects/:id/archive",
+  PROJECT_RESTORE: "/api/projects/:id/restore",
   PEOPLE: "/api/people",
   GOOGLE_SIGN_IN: "/auth/google",
   GOOGLE_CALLBACK: "/auth/google/callback",

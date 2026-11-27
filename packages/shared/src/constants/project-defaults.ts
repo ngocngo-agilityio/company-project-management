@@ -10,3 +10,6 @@ export const DEFAULT_LISTS = [
   { name: "In progress", isFinished: false },
   { name: "Done", isFinished: true },
 ] as const;
+
+/** How many members a project card previews with an avatar. The rest are only counted. */
+export const PROJECT_MEMBER_PREVIEW_MAX = 4;

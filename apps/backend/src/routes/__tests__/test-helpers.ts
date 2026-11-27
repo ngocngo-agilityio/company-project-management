@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { SESSION_COOKIE_NAME } from "@board/shared";
+import { PROJECT_MEMBER_PREVIEW_MAX, SESSION_COOKIE_NAME } from "@board/shared";
 import { buildApp } from "../../app.js";
 import type { GoogleAuth } from "../../services/google.js";
 import type {
@@ -8,6 +8,7 @@ import type {
   PeopleStore,
   ProjectStore,
   StoredProject,
+  StoredProjectSummary,
   StoredProjectWithRole,
   StoredUser,
 } from "../../types/index.js";
@@ -68,6 +69,24 @@ export function makeProjectStore(users: StoredUser[], opts: { failWith?: Error }
   const projects: StoredProject[] = [];
   const memberships: { projectId: string; userId: string; role: "OWNER" | "MEMBER" | "OBSERVER" }[] = [];
   const created: CreatedProject[] = [];
+  const roleOrder = { OWNER: 0, MEMBER: 1, OBSERVER: 2 } as const;
+  /** Counts and the avatar preview, worked out from the memberships like the database would. */
+  const withStats = (project: StoredProject): StoredProjectSummary => {
+    const members = memberships
+      .filter((m) => m.projectId === project.id)
+      .map((m) => ({ role: m.role, user: users.find((u) => u.id === m.userId)! }))
+      .sort((a, b) => roleOrder[a.role] - roleOrder[b.role] || a.user.name.localeCompare(b.user.name));
+    return {
+      ...project,
+      boardCount: created.filter((c) => c.project.id === project.id).length || 1,
+      memberCount: members.length,
+      members: members.slice(0, PROJECT_MEMBER_PREVIEW_MAX).map(({ user }) => ({
+        id: user.id,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+      })),
+    };
+  };
   const store: ProjectStore = {
     async createProject({ name, ownerId }) {
       if (opts.failWith) throw opts.failWith;
@@ -92,13 +111,20 @@ export function makeProjectStore(users: StoredUser[], opts: { failWith?: Error }
       created.push(result);
       return result;
     },
+    async setArchived(id, archived) {
+      const project = projects.find((p) => p.id === id);
+      if (!project) return "not_found";
+      if ((project.archivedAt !== null) === archived) return "unchanged";
+      project.archivedAt = archived ? NOW : null;
+      return "ok";
+    },
     async listAll() {
-      return [...projects];
+      return projects.map(withStats);
     },
     async listForUser(userId): Promise<StoredProjectWithRole[]> {
       return memberships
         .filter((m) => m.userId === userId)
-        .map((m) => ({ ...projects.find((p) => p.id === m.projectId)!, role: m.role }));
+        .map((m) => ({ ...withStats(projects.find((p) => p.id === m.projectId)!), role: m.role }));
     },
   };
   return { store, projects, memberships, created };
