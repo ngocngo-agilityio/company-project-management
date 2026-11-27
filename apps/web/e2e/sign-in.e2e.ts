@@ -18,6 +18,12 @@ async function open(page: Page, path: string, { signedIn = false } = {}) {
 
 const heading = (page: Page, name: string) => page.getByRole("heading", { level: 1, name });
 
+/** Under 900px the sidebar is a drawer: open it first. */
+async function openMenuIfCollapsed(page: Page) {
+  const menu = page.getByRole("button", { name: "Open menu" });
+  if (await menu.isVisible()) await menu.click();
+}
+
 test("a private route goes to /login without a session", async ({ page }) => {
   await open(page, "/projects");
   await expect(page).toHaveURL(/\/login$/);
@@ -110,6 +116,7 @@ test("Sign out goes to /login and Back does not show private pages", async ({ pa
   await page.goto("/projects");
   await expect(heading(page, "Projects")).toBeVisible();
 
+  await openMenuIfCollapsed(page);
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(heading(page, "Sign in to Company Board")).toBeVisible();
