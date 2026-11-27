@@ -75,3 +75,26 @@ describe("createPrismaProjectStore.createProject", () => {
     expect(committed).toEqual([]);
   });
 });
+
+describe("createPrismaProjectStore lists", () => {
+  const row = { id: "p1", name: "Site", archivedAt: null, createdAt: new Date("2026-11-27T00:00:00Z") };
+
+  it("listForUser reads only the memberships of that person and keeps the membership role", async () => {
+    const membershipFindMany = vi.fn(async () => [{ role: "MEMBER", project: row }]);
+    const db = { membership: { findMany: membershipFindMany } } as unknown as PrismaClient;
+
+    const result = await createPrismaProjectStore(db).listForUser("user-1");
+
+    expect(membershipFindMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: "user-1" } }));
+    expect(result).toEqual([{ ...row, role: "MEMBER" }]);
+  });
+
+  it("listAll is the only unfiltered query", async () => {
+    const projectFindMany = vi.fn(async () => [row]);
+    const db = { project: { findMany: projectFindMany } } as unknown as PrismaClient;
+
+    await createPrismaProjectStore(db).listAll();
+
+    expect(projectFindMany).toHaveBeenCalledWith(expect.not.objectContaining({ where: expect.anything() }));
+  });
+});

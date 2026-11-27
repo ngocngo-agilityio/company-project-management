@@ -88,11 +88,8 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   // Send it back to the sign-in screen with a code instead. Other routes keep the JSON answer.
   app.setErrorHandler((error: { statusCode?: number; message?: string; code?: string }, request, reply) => {
     // Unreadable body (bad JSON, unsupported Content-Type): same shape as a zod refusal, not Fastify's own object.
-    if (
-      error.code?.startsWith("FST_ERR_CTP_") &&
-      error.statusCode &&
-      error.statusCode < HTTP_STATUS.INTERNAL_SERVER_ERROR
-    ) {
+    // Only a 400 refusal: a body that is too large keeps its own status (413) and Fastify's answer.
+    if (error.code?.startsWith("FST_ERR_CTP_") && error.statusCode === HTTP_STATUS.BAD_REQUEST) {
       return reply
         .code(error.statusCode)
         .send({ error: API_ERROR.VALIDATION_ERROR, message: error.message ?? "request: unreadable body" });

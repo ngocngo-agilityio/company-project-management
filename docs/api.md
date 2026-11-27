@@ -6,7 +6,7 @@
 
 - All responses are JSON. Routes live under `/api`, except auth, `/health` and the public pages `/about` and `/privacy` (HTML, no sign-in; Google asks for them on the consent screen).
 - Input is validated with Zod (schemas in `@board/shared`).
-- Status codes: `400` Zod refusal, body `{ error: "validation_error", message }` (the message names the field and the rule, never the value sent); `401` not signed in; `403` role refuses; `404` item not visible, including a resource in a project the person is not in.
+- Status codes: `400` Zod refusal, body `{ error: "validation_error", message }` (the message names the field and the rule, never the value sent); `401` not signed in (exception: an unreadable body, such as bad JSON or an unsupported Content-Type, is refused by Fastify with `400` before the access hook runs, even with no session); `403` role refuses; `404` item not visible, including a resource in a project the person is not in.
 - `POST`, `PATCH`, `DELETE` check the `Origin` header. Sign-in and invitation routes are rate limited.
 - Session: a row in `session` and an HttpOnly cookie `sid` holding its id. It lasts 7 days from the last use and is extended when used. An expired or unknown session answers 401 and its row is deleted; there is no cleanup job.
 - Rate limit: `/auth/google` and `/auth/google/callback` allow 10 requests a minute per client address; past that the browser is sent to `WEB_ORIGIN/login?error=rate_limited` (not raw JSON). `/auth/logout` has its own counter (30 a minute) and answers `429` JSON. `TRUST_PROXY=1` (Render) reads the client address from `X-Forwarded-For`; `0` locally.
