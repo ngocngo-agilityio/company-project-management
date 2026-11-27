@@ -3,6 +3,7 @@ import { Navigate, type RouteObject } from "react-router";
 import { AppLayout, NotFound } from "./components";
 import type { RouteHandle } from "./types";
 import { RequireAuth } from "./components";
+import { People } from "./pages/People";
 import { ProjectBoard } from "./pages/ProjectBoard";
 import { Projects } from "./pages/Projects";
 import { SignIn } from "./pages/SignIn";
@@ -28,6 +29,11 @@ export const appRoutes: RouteObject[] = [
             path: relative(WEB_ROUTES.PROJECTS),
             handle: handle("Projects"),
             element: <Projects />,
+          },
+          {
+            path: relative(WEB_ROUTES.PEOPLE),
+            handle: handle("People"),
+            element: <People />,
           },
           {
             path: relative(WEB_ROUTES.PROJECT),
