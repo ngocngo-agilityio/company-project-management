@@ -51,6 +51,7 @@ const app = buildApp({
     }),
     crossSite,
     superAdminEmail: env.SUPER_ADMIN_EMAIL,
+    e2eLogin: env.E2E === "1",
   },
 });
 

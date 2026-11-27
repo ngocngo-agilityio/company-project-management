@@ -1,6 +1,7 @@
 import { normalizeEmail } from "@board/shared";
 import { z } from "zod";
 import { DEFAULT_COMPANY_TIMEZONE } from "./constants/index.js";
+import { assertLocalDatabase } from "./utils/db-guard.js";
 
 // Empty strings (e.g. `PORT=` copied from .env.example) are treated as unset.
 const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
@@ -58,6 +59,9 @@ const envSchema = z.object({
   // Contact address shown on the public /about and /privacy pages (Google asks for one). Optional.
   CONTACT_EMAIL: z.preprocess(emptyToUndefined, z.string().trim().pipe(z.email()).optional()),
   TRUST_PROXY: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
+  // 1 only for browser end-to-end tests: adds `POST /api/test/login` (sign in with no Google). Refused in
+  // production, on Render and with a database that is not on this machine (see `parseEnv`).
+  E2E: z.preprocess(emptyToUndefined, z.enum(["0", "1"]).default("0")),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -68,7 +72,18 @@ export function parseEnv(source: NodeJS.ProcessEnv): Env {
     const details = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
     throw new Error(`Invalid environment: ${details}`);
   }
+  assertE2eIsSafe(result.data, source);
   return result.data;
+}
+
+/** `E2E=1` opens a sign-in with no password, so it must never start where real people sign in. */
+function assertE2eIsSafe(env: Env, source: NodeJS.ProcessEnv): void {
+  if (env.E2E !== "1") return;
+  if (source.NODE_ENV === "production" || source.RENDER) {
+    throw new Error("Invalid environment: E2E=1 is not allowed in production or on Render");
+  }
+  // Always local, even when ALLOW_REMOTE_DB=1.
+  assertLocalDatabase(env.DATABASE_URL, false);
 }
 
 /** Loads the repo-root .env (if present) into process.env. Existing variables are not overridden. */
