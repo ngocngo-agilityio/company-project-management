@@ -2,13 +2,18 @@ import {
   API_ROUTES,
   HTTP_STATUS,
   createProjectResponseSchema,
+  invitationListResponseSchema,
+  invitationResponseSchema,
   projectArchiveResponseSchema,
   healthResponseSchema,
   meResponseSchema,
   peopleListResponseSchema,
   projectListResponseSchema,
+  type CreateInvitationRequest,
   type CreateProjectRequest,
   type CreateProjectResponse,
+  type InvitationListResponse,
+  type InvitationResponse,
   type ProjectArchiveResponse,
   type HealthResponse,
   type MeResponse,
@@ -101,4 +106,21 @@ export function archiveProject(projectId: string): Promise<ProjectArchiveRespons
 /** Brings an archived project back. Super Admin only. */
 export function restoreProject(projectId: string): Promise<ProjectArchiveResponse> {
   return postProjectAction(API_ROUTES.PROJECT_RESTORE, projectId);
+}
+
+/** Every invitation, newest first. Super Admin only. */
+export async function fetchInvitations(): Promise<InvitationListResponse> {
+  const res = await fetch(`${API_URL}${API_ROUTES.INVITATIONS}`, { credentials: "include" });
+  return readJson(res, invitationListResponseSchema);
+}
+
+/** Invites a person to the app with no project. Super Admin only. 409: already an account, or already Pending. */
+export async function createInvitation(body: CreateInvitationRequest): Promise<InvitationResponse> {
+  const res = await fetch(`${API_URL}${API_ROUTES.INVITATIONS}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return readJson(res, invitationResponseSchema);
 }
