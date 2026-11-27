@@ -7,7 +7,7 @@ paths:
 
 # Testing rules
 
-- Vitest for unit and integration; Playwright for end-to-end (`pnpm --filter @board/web test:e2e`; mocks the API, not run in CI yet).
+- Vitest for unit and integration; Playwright for end-to-end (`pnpm e2e`: real backend and a local Postgres for `@real` specs, mocked API for the rest; runs in CI job `e2e` and before each push).
 - Name files `<unit>.test.ts(x)` in a `__tests__/` folder beside the code, or `<flow>.e2e.ts` under
   `apps/web/e2e/` for Playwright. Layout and naming: `.claude/rules/structure.md`.
 - Test behavior, not implementation. One clear assertion focus per test.
