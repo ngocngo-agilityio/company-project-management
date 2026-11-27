@@ -3,9 +3,11 @@ import {
   API_ROUTES,
   can,
   createProjectRequestSchema,
+  projectIdParamSchema,
   HTTP_STATUS,
   type ApiError,
   type CreateProjectResponse,
+  type ProjectArchiveResponse,
   type ProjectListResponse,
 } from "@board/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
@@ -72,9 +74,49 @@ export const projectsPlugin: FastifyPluginAsync<ProjectsOptions> = async (app, {
           archivedAt: row.archivedAt?.toISOString() ?? null,
           createdAt: row.createdAt.toISOString(),
           role: row.role,
+          boardCount: row.boardCount,
+          memberCount: row.memberCount,
+          members: row.members,
+          // Placeholders until the Card model exists (cards story). Then count from the database.
+          openCardCount: 0,
+          overdueCardCount: 0,
         }))
         .sort((a, b) => compareNames(a.name, b.name));
       return { projects };
     },
   );
+
+  /** Archive and restore are the same call with the flag flipped. */
+  for (const { url, archived } of [
+    { url: API_ROUTES.PROJECT_ARCHIVE, archived: true },
+    { url: API_ROUTES.PROJECT_RESTORE, archived: false },
+  ]) {
+    app.post(
+      url,
+      { config: { access: "project:archive" } },
+      async (request, reply): Promise<ProjectArchiveResponse | ApiError> => {
+        const user = await currentUser(request, reply);
+        if (!user) return reply.code(HTTP_STATUS.UNAUTHORIZED).send({ error: API_ERROR.UNAUTHORIZED });
+        // The access hook already refused others; check again so the rule also holds if the hook changes.
+        if (!user.isSuperAdmin || !can("SUPER_ADMIN", "project:archive")) {
+          return reply.code(HTTP_STATUS.FORBIDDEN).send({ error: API_ERROR.FORBIDDEN });
+        }
+        const params = projectIdParamSchema.safeParse(request.params);
+        if (!params.success) {
+          return reply
+            .code(HTTP_STATUS.BAD_REQUEST)
+            .send({ error: API_ERROR.VALIDATION_ERROR, message: validationMessage(params.error) });
+        }
+        const result = await store.setArchived(params.data.id, archived);
+        if (result === "not_found") return reply.code(HTTP_STATUS.NOT_FOUND).send({ error: API_ERROR.NOT_FOUND });
+        if (result === "unchanged") {
+          return reply.code(HTTP_STATUS.CONFLICT).send({
+            error: API_ERROR.CONFLICT,
+            message: archived ? "The project is already archived." : "The project is not archived.",
+          });
+        }
+        return { id: params.data.id, archivedAt: archived ? new Date().toISOString() : null };
+      },
+    );
+  }
 };

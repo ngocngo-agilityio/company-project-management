@@ -24,7 +24,7 @@ export function AppLayout() {
         <SidebarContent />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-(--z-sticky) flex items-center gap-3 border-b border-line bg-surface px-4 py-2">
+        <header className="sticky top-0 z-(--z-sticky) flex min-h-14 items-center gap-3 border-b border-line bg-surface px-4 py-2">
           <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" aria-label="Open menu" className="size-11 p-0 min-[900px]:hidden">
@@ -35,9 +35,9 @@ export function AppLayout() {
               <SidebarContent onNavigate={() => setDrawerOpen(false)} />
             </DrawerContent>
           </Dialog>
-          <h1 className="min-w-0 flex-1 truncate font-display text-heading-1">{title}</h1>
+          <p className="min-w-0 flex-1 truncate text-body font-semibold">{title}</p>
         </header>
-        <main className="mx-auto w-full max-w-page flex-1 px-4 pt-5.5 pb-8">
+        <main className="mx-auto w-full max-w-page flex-1 px-4 pt-5.5 pb-20">
           <Outlet />
         </main>
       </div>

@@ -192,11 +192,11 @@ describe("Sign-in screen", () => {
   });
 
   it("brings a signed-in person back to the page they asked for", async () => {
-    sessionStorage.setItem("board.returnTo", "/people");
+    sessionStorage.setItem("board.returnTo", "/projects?tab=all");
     mockSession(true);
     const router = renderAt("/login");
-    expect(await screen.findByRole("heading", { level: 1, name: "People" })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe("/people");
+    expect(await screen.findByRole("heading", { level: 1, name: "Projects" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/projects");
     expect(sessionStorage.getItem("board.returnTo")).toBeNull();
   });
 

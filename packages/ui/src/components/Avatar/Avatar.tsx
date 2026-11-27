@@ -37,7 +37,8 @@ export function Avatar({ name, src, colorIndex, size = 26, className }: AvatarPr
       role="img"
       aria-label={name}
       title={name}
-      style={{ width: size, height: size, fontSize: size >= 30 ? 13 : 11.5 }}
+      // Three steps so the initials keep about the same share of the circle: 34px 13, 26px 11.5, 22px 10.
+      style={{ width: size, height: size, fontSize: size >= 30 ? 13 : size >= 24 ? 11.5 : 10 }}
       className={cn(
         "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-pill select-none",
         className,
