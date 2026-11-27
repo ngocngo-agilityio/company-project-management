@@ -13,6 +13,7 @@ import {
   type ApiError,
   type MeResponse,
   type SignInError,
+  testLoginRequestSchema,
   WEB_ROUTES,
 } from "@board/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
@@ -21,6 +22,7 @@ import { SESSION_TTL_MS } from "../constants/index.js";
 import type { GoogleAuth } from "../services/google.js";
 import { evaluateGate } from "../services/invitation-gate.js";
 import type { AuthStore, PeopleStore, ProjectStore, StoredUser } from "../types/index.js";
+import { validationMessage } from "../utils/index.js";
 import { peoplePlugin } from "./people.js";
 import { projectsPlugin } from "./projects.js";
 
@@ -48,6 +50,8 @@ export interface AuthOptions {
   crossSite: boolean;
   /** Lowercase email of the first Super Admin (SUPER_ADMIN_EMAIL). Unset: nobody gets in on that rule. */
   superAdminEmail?: string | undefined;
+  /** true (`E2E=1`): adds `POST /api/test/login`. Only for browser end-to-end tests. */
+  e2eLogin?: boolean;
   now?: () => Date;
 }
 
@@ -234,6 +238,44 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
       };
     },
   );
+
+  if (opts.e2eLogin) {
+    app.post(API_ROUTES.TEST_LOGIN, { config: { access: "public" } }, async (request, reply) => {
+      const body = testLoginRequestSchema.safeParse(request.body);
+      if (!body.success) {
+        return reply
+          .code(HTTP_STATUS.BAD_REQUEST)
+          .send({ error: API_ERROR.VALIDATION_ERROR, message: validationMessage(body.error) });
+      }
+      const { email, name, isSuperAdmin } = body.data;
+      const at = now();
+      const googleId = `e2e:${email}`;
+      let user = await store.findUser({ googleId, email });
+      if (user?.deactivatedAt) return reply.code(HTTP_STATUS.FORBIDDEN).send({ error: API_ERROR.FORBIDDEN });
+      if (!user && isSuperAdmin) {
+        user = await store.admit({
+          userId: null,
+          email,
+          googleId,
+          name: name ?? email.split("@")[0]!,
+          avatarUrl: null,
+          isFirstSuperAdmin: true,
+          now: at,
+        });
+      }
+      if (!user) return reply.code(HTTP_STATUS.NOT_FOUND).send({ error: API_ERROR.NOT_FOUND });
+      const expiresAt = new Date(at.getTime() + SESSION_TTL_MS);
+      const session = await store.createSession(user.id, expiresAt);
+      setSessionCookie(reply, session.id, expiresAt);
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        isSuperAdmin: user.isSuperAdmin,
+      };
+    });
+  }
 
   // Registered here, not at the app root, so the access hook above covers them.
   if (opts.projects) await app.register(projectsPlugin, { store: opts.projects, currentUser });

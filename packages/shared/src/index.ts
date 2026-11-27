@@ -8,6 +8,7 @@ export {
   projectListResponseSchema,
   peopleListQuerySchema,
   peopleListResponseSchema,
+  testLoginRequestSchema,
   type MeResponse,
   type HealthResponse,
   type CreateProjectRequest,
@@ -15,4 +16,5 @@ export {
   type ProjectListResponse,
   type PeopleListQuery,
   type PeopleListResponse,
+  type TestLoginRequest,
 } from "./types/index.js";

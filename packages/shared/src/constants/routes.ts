@@ -13,6 +13,8 @@ export const API_ROUTES = {
   ME: "/api/me",
   PROJECTS: "/api/projects",
   PEOPLE: "/api/people",
+  /** Exists only when the backend runs with `E2E=1`. Never on Render. */
+  TEST_LOGIN: "/api/test/login",
   GOOGLE_SIGN_IN: "/auth/google",
   GOOGLE_CALLBACK: "/auth/google/callback",
   LOGOUT: "/auth/logout",

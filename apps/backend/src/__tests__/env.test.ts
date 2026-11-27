@@ -39,6 +39,7 @@ describe("parseEnv", () => {
       HOST: "127.0.0.1",
       DATABASE_URL: DB,
       ALLOW_REMOTE_DB: "0",
+      E2E: "0",
       COMPANY_TIMEZONE: "Asia/Ho_Chi_Minh",
       COOKIE_CROSS_SITE: "0",
       TRUST_PROXY: "0",
@@ -121,5 +122,35 @@ describe("COMPANY_TIMEZONE", () => {
 
   it("rejects an unknown time zone", () => {
     expect(() => parseEnv({ COMPANY_TIMEZONE: "Mars/Olympus" })).toThrow(/COMPANY_TIMEZONE/);
+  });
+});
+
+describe("E2E guard", () => {
+  const LOCAL = "postgresql://board:pw@localhost:5432/board_e2e";
+
+  it("is off by default", () => {
+    expect(parseEnv({}).E2E).toBe("0");
+  });
+
+  it("is allowed with a local database", () => {
+    expect(parseEnv({ E2E: "1", DATABASE_URL: LOCAL }).E2E).toBe("1");
+  });
+
+  it("is refused in production", () => {
+    expect(() => parseEnv({ E2E: "1", DATABASE_URL: LOCAL, NODE_ENV: "production" })).toThrow(/E2E=1 is not allowed/);
+  });
+
+  it("is refused on Render", () => {
+    expect(() => parseEnv({ E2E: "1", DATABASE_URL: LOCAL, RENDER: "true" })).toThrow(/E2E=1 is not allowed/);
+  });
+
+  it("is refused with a remote database, even with ALLOW_REMOTE_DB=1", () => {
+    expect(() =>
+      parseEnv({ E2E: "1", ALLOW_REMOTE_DB: "1", DATABASE_URL: "postgresql://u:p@db.example.com:5432/x" }),
+    ).toThrow(/non-local database/);
+  });
+
+  it("is refused without a database", () => {
+    expect(() => parseEnv({ E2E: "1" })).toThrow(/DATABASE_URL is not set/);
   });
 });
