@@ -11,6 +11,8 @@ export const WEB_ROUTES = {
 export const API_ROUTES = {
   HEALTH: "/health",
   ME: "/api/me",
+  PROJECTS: "/api/projects",
+  PEOPLE: "/api/people",
   GOOGLE_SIGN_IN: "/auth/google",
   GOOGLE_CALLBACK: "/auth/google/callback",
   LOGOUT: "/auth/logout",

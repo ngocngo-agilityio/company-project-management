@@ -1,6 +1,8 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { buildApp } from "./app.js";
 import { createGoogleAuth } from "./services/google.js";
+import { createPrismaPeopleStore } from "./services/prisma-people-store.js";
+import { createPrismaProjectStore } from "./services/prisma-project-store.js";
 import { createPrismaAuthStore } from "./services/prisma-store.js";
 import { loadEnv, type Env } from "./env.js";
 import { PrismaClient } from "./generated/prisma/client.js";
@@ -39,6 +41,8 @@ const app = buildApp({
   contactEmail: env.CONTACT_EMAIL,
   auth: {
     store: createPrismaAuthStore(prisma),
+    projects: createPrismaProjectStore(prisma),
+    people: createPrismaPeopleStore(prisma),
     google: createGoogleAuth({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
